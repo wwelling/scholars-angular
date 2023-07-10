@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, OnDestroy, OnInit } from '@angular/core';
-import { ActivatedRoute, Params } from '@angular/router';
-import { select, Store } from '@ngrx/store';
-import { filter, Observable, take } from 'rxjs';
+import { ActivatedRoute } from '@angular/router';
+import { Store, select } from '@ngrx/store';
+import { Observable, filter } from 'rxjs';
 
 import { SolrDocument } from '../../core/model/discovery';
 import { AppState } from '../../core/store';
@@ -31,24 +31,27 @@ export class CoInvestigatorNetworkComponent implements OnDestroy, OnInit {
   }
 
   ngOnInit() {
-    this.route.parent.params.pipe(take(1)).subscribe((params: Params) => {
-      if (params.id) {
-        this.document = this.store.pipe(
-          select(selectResourceById('individual', params.id)),
-          filter((document: SolrDocument) => document !== undefined)
-        );
-        this.dataNetwork = this.store.pipe(
-          select(selectResourcesDataNetwork('individual')),
-          filter((document: DataNetwork) => document !== undefined),
-        );
-        this.store.dispatch(new fromSdr.GetNetworkAction('individual', {
-          id: params.id,
-          dateField: 'dateTimeIntervalStart',
-          dataFields: ['contributors'],
-          typeFilter: 'class:Relationship AND type:Grant'
-        }));
-      }
-    });
+    if (this.route.parent && this.route.parent.data) {
+      this.route.parent.data.subscribe(data => {
+        if (data.document && data.document.id) {
+          const id = data.document.id;
+          this.document = this.store.pipe(
+            select(selectResourceById('individual', id)),
+            filter((document: SolrDocument) => document !== undefined)
+          );
+          this.dataNetwork = this.store.pipe(
+            select(selectResourcesDataNetwork('individual')),
+            filter((document: DataNetwork) => document !== undefined),
+          );
+          this.store.dispatch(new fromSdr.GetNetworkAction('individual', {
+            id,
+            dateField: 'dateTimeIntervalStart',
+            dataFields: ['contributors'],
+            typeFilter: 'class:Relationship AND type:Grant'
+          }));
+        }
+      });
+    }
   }
 
   asIsOrder(): number {

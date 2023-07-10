@@ -22,6 +22,20 @@ export interface DataNetwork {
   data: DirectedData[];
 };
 
+export interface Datum {
+  label: string;
+  value: number;
+}
+
+export interface ResearchAge {
+  label: string;
+  dateField: string;
+  ranges: Map<string, string>;
+  groups: Datum[],
+  mean: number;
+  median: number;
+}
+
 export interface SdrState<R extends SdrResource> extends EntityState<R> {
   page: SdrPage;
   facets: SdrFacet[];
@@ -29,6 +43,7 @@ export interface SdrState<R extends SdrResource> extends EntityState<R> {
   links: SdrCollectionLinks;
   recentlyUpdated: SdrResource[];
   dataNetwork: DataNetwork;
+  researchAge: ResearchAge;
   counting: boolean;
   loading: boolean;
   dereferencing: boolean;
@@ -50,6 +65,7 @@ export const getSdrInitialState = <R extends SdrResource>(key: string) => {
     links: undefined,
     recentlyUpdated: [],
     dataNetwork: undefined,
+    researchAge: undefined,
     counting: false,
     loading: false,
     dereferencing: false,
@@ -147,6 +163,7 @@ export const getSdrReducer = <R extends SdrResource>(name: string, additionalCon
       case getSdrAction(SdrActionTypes.PAGE, name):
       case getSdrAction(SdrActionTypes.SEARCH, name):
       case getSdrAction(SdrActionTypes.GET_NETWORK, name):
+      case getSdrAction(SdrActionTypes.GET_RESEARCH_AGE, name):
       case getSdrAction(SdrActionTypes.RECENTLY_UPDATED, name):
         return {
           ...state,
@@ -180,6 +197,14 @@ export const getSdrReducer = <R extends SdrResource>(name: string, additionalCon
           loading: false,
           error: undefined,
         };
+      case getSdrAction(SdrActionTypes.GET_RESEARCH_AGE_SUCCESS, name):
+      const researchAge = action.payload.researchAge;
+      return {
+        ...state,
+        researchAge,
+        loading: false,
+        error: undefined,
+      };
       case getSdrAction(SdrActionTypes.RECENTLY_UPDATED_SUCCESS, name):
         const recentlyUpdated = action.payload.recentlyUpdated._embedded !== undefined ? action.payload.recentlyUpdated._embedded[name] : [];
         return {
@@ -244,6 +269,7 @@ export const getSdrReducer = <R extends SdrResource>(name: string, additionalCon
       case getSdrAction(SdrActionTypes.GET_ALL_FAILURE, name):
       case getSdrAction(SdrActionTypes.GET_ONE_FAILURE, name):
       case getSdrAction(SdrActionTypes.GET_NETWORK_FAILURE, name):
+      case getSdrAction(SdrActionTypes.GET_RESEARCH_AGE_FAILURE, name):
       case getSdrAction(SdrActionTypes.FIND_BY_ID_IN_FAILURE, name):
       case getSdrAction(SdrActionTypes.FIND_BY_TYPES_IN_FAILURE, name):
       case getSdrAction(SdrActionTypes.FETCH_LAZY_REFERENCE_FAILURE, name):
@@ -323,3 +349,4 @@ export const getFacets = <R extends SdrResource>(state: SdrState<R>) => state.fa
 export const getLinks = <R extends SdrResource>(state: SdrState<R>) => state.links;
 export const getRecentlyUpdated = <R extends SdrResource>(state: SdrState<R>) => state.recentlyUpdated;
 export const getDataNetwork = <R extends SdrResource>(state: SdrState<R>) => state.dataNetwork;
+export const getResearchAge = <R extends SdrResource>(state: SdrState<R>) => state.researchAge;

@@ -29,7 +29,7 @@ import { createSdrRequest, buildDateYearFilterValue, buildNumberRangeFilterValue
 import { removeFilterFromQueryParams } from '../../../shared/utilities/view.utility';
 
 import { selectSdrState } from './';
-import { DataNetwork, SdrState } from './sdr.reducer';
+import { DataNetwork, ResearchAge, SdrState } from './sdr.reducer';
 import { selectRouterState } from '../router';
 import { selectIsStompConnected, selectStompState } from '../stomp';
 
@@ -164,6 +164,45 @@ export class SdrEffects {
   getNetworkFailure = createEffect(() => this.actions.pipe(
     ofType(...this.buildActions(fromSdr.SdrActionTypes.GET_NETWORK_FAILURE)),
     map((action: fromSdr.GetNetworkFailureAction) => this.alert.getNetworkFailureAlert(action.payload))
+  ));
+
+  getRearchAge = createEffect(() => this.actions.pipe(
+    ofType(...this.buildActions(fromSdr.SdrActionTypes.GET_RESEARCH_AGE)),
+    switchMap((action: fromSdr.GetResearchAgeAction) =>
+      this.repos
+        .get(action.name)
+        .getResearchAge(action.payload.query, action.payload.filters, action.payload.label, action.payload.dateField, action.payload.accumulateMultivaluedDate, action.payload.averageOverInterval, action.payload.upperLimitInYears, action.payload.groupingIntervalInYears)
+        .pipe(
+          map((researchAge: ResearchAge) => new fromSdr.GetResearchAgeSuccessAction(action.name, { researchAge, queue: action.payload.queue })),
+          catchError((response) =>
+            scheduled(
+              [
+                new fromSdr.GetResearchAgeFailureAction(action.name, {
+                  response,
+                }),
+              ],
+              asapScheduler
+            )
+          )
+        )
+    )
+  ));
+
+  getRearchAgeSuccess = createEffect(() => this.actions.pipe(
+    ofType(...this.buildActions(fromSdr.SdrActionTypes.GET_RESEARCH_AGE_SUCCESS)),
+    // TODO: determine utility and use of stomp connection for each success action dispatched (only applicable to asynchronous REST actions in which we want to switch to full duplex)
+    // switchMap((action: fromSdr.GetResearchAgeSuccessAction) => this.waitForStompConnection(action.name)),
+    // withLatestFrom(this.store.pipe(select(selectStompState))),
+    map((action: fromSdr.GetResearchAgeSuccessAction) => {
+      if (action.payload.queue.length > 0) {
+        this.store.dispatch(action.payload.queue.pop());
+      }
+    })
+  ), { dispatch: false });
+
+  getRearchAgeFailure = createEffect(() => this.actions.pipe(
+    ofType(...this.buildActions(fromSdr.SdrActionTypes.GET_RESEARCH_AGE_FAILURE)),
+    map((action: fromSdr.GetResearchAgeFailureAction) => this.alert.getResearchAgeFailureAlert(action.payload))
   ));
 
   findByIdIn = createEffect(() => this.actions.pipe(
