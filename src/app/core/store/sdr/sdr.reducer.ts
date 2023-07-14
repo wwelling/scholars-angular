@@ -36,6 +36,18 @@ export interface ResearchAge {
   median: number;
 }
 
+export interface Slice {
+  label: string;
+  count: number;
+}
+
+export interface QuantityDistribution {
+  label: string;
+  field: string;
+  total: number;
+  distribution: Slice[];
+}
+
 export interface SdrState<R extends SdrResource> extends EntityState<R> {
   page: SdrPage;
   facets: SdrFacet[];
@@ -44,6 +56,7 @@ export interface SdrState<R extends SdrResource> extends EntityState<R> {
   recentlyUpdated: SdrResource[];
   dataNetwork: DataNetwork;
   researchAge: ResearchAge;
+  quantityDistribution: QuantityDistribution;
   counting: boolean;
   loading: boolean;
   dereferencing: boolean;
@@ -66,6 +79,7 @@ export const getSdrInitialState = <R extends SdrResource>(key: string) => {
     recentlyUpdated: [],
     dataNetwork: undefined,
     researchAge: undefined,
+    quantityDistribution: undefined,
     counting: false,
     loading: false,
     dereferencing: false,
@@ -164,6 +178,7 @@ export const getSdrReducer = <R extends SdrResource>(name: string, additionalCon
       case getSdrAction(SdrActionTypes.SEARCH, name):
       case getSdrAction(SdrActionTypes.GET_NETWORK, name):
       case getSdrAction(SdrActionTypes.GET_RESEARCH_AGE, name):
+      case getSdrAction(SdrActionTypes.GET_QUANTITY_DISTRIBUTION, name):
       case getSdrAction(SdrActionTypes.RECENTLY_UPDATED, name):
         return {
           ...state,
@@ -202,6 +217,14 @@ export const getSdrReducer = <R extends SdrResource>(name: string, additionalCon
       return {
         ...state,
         researchAge,
+        loading: false,
+        error: undefined,
+      };
+      case getSdrAction(SdrActionTypes.GET_QUANTITY_DISTRIBUTION_SUCCESS, name):
+      const quantityDistribution = action.payload.quantityDistribution;
+      return {
+        ...state,
+        quantityDistribution,
         loading: false,
         error: undefined,
       };
@@ -270,6 +293,7 @@ export const getSdrReducer = <R extends SdrResource>(name: string, additionalCon
       case getSdrAction(SdrActionTypes.GET_ONE_FAILURE, name):
       case getSdrAction(SdrActionTypes.GET_NETWORK_FAILURE, name):
       case getSdrAction(SdrActionTypes.GET_RESEARCH_AGE_FAILURE, name):
+      case getSdrAction(SdrActionTypes.GET_QUANTITY_DISTRIBUTION_FAILURE, name):
       case getSdrAction(SdrActionTypes.FIND_BY_ID_IN_FAILURE, name):
       case getSdrAction(SdrActionTypes.FIND_BY_TYPES_IN_FAILURE, name):
       case getSdrAction(SdrActionTypes.FETCH_LAZY_REFERENCE_FAILURE, name):
@@ -350,3 +374,4 @@ export const getLinks = <R extends SdrResource>(state: SdrState<R>) => state.lin
 export const getRecentlyUpdated = <R extends SdrResource>(state: SdrState<R>) => state.recentlyUpdated;
 export const getDataNetwork = <R extends SdrResource>(state: SdrState<R>) => state.dataNetwork;
 export const getResearchAge = <R extends SdrResource>(state: SdrState<R>) => state.researchAge;
+export const getQuantityDistribution = <R extends SdrResource>(state: SdrState<R>) => state.quantityDistribution;
