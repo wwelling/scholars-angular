@@ -1,43 +1,35 @@
 import { Injectable, Injector } from '@angular/core';
-import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { Params } from '@angular/router';
+import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { Store, select } from '@ngrx/store';
 import { TranslateService } from '@ngx-translate/core';
-
-import { combineLatest, defer, Observable, scheduled } from 'rxjs';
-import { asapScheduler } from 'rxjs';
+import { Observable, asapScheduler, combineLatest, defer, scheduled } from 'rxjs';
 import { catchError, filter, map, mergeMap, skipWhile, switchMap, take, withLatestFrom } from 'rxjs/operators';
 
+import { AppState } from '../';
+import { FILTER_VALUE_DELIMITER, buildDateYearFilterValue, buildNumberRangeFilterValue, createSdrRequest, getFacetFilterLabel } from '../../../shared/utilities/discovery.utility';
+import { removeFilterFromQueryParams } from '../../../shared/utilities/view.utility';
+import { Individual } from '../../model/discovery';
+import { injectable, repos } from '../../model/repos';
+import { Count, SdrCollection, SdrFacet, SdrFacetEntry, SdrResource } from '../../model/sdr';
+import { AbstractSdrRepo } from '../../model/sdr/repo/abstract-sdr-repo';
+import { SidebarItem, SidebarItemType, SidebarMenu, SidebarSection } from '../../model/sidebar';
+import { DirectoryView, DiscoveryView, Facet, FacetType, OpKey } from '../../model/view';
 import { AlertService } from '../../service/alert.service';
 import { DialogService } from '../../service/dialog.service';
 import { StatsService } from '../../service/stats.service';
-
-import { AppState } from '../';
-import { StompState } from '../stomp/stomp.reducer';
-import { CustomRouterState } from '../router/router.reducer';
-
-import { AbstractSdrRepo } from '../../model/sdr/repo/abstract-sdr-repo';
-
-import { SdrResource, SdrCollection, SdrFacet, SdrFacetEntry, Count } from '../../model/sdr';
-import { SidebarMenu, SidebarSection, SidebarItem, SidebarItemType } from '../../model/sidebar';
-import { SolrDocument } from '../../model/discovery';
-import { Facet, DiscoveryView, DirectoryView, FacetType, OpKey } from '../../model/view';
-
-import { injectable, repos } from '../../model/repos';
-
-import { createSdrRequest, buildDateYearFilterValue, buildNumberRangeFilterValue, getFacetFilterLabel, FILTER_VALUE_DELIMITER } from '../../../shared/utilities/discovery.utility';
-import { removeFilterFromQueryParams } from '../../../shared/utilities/view.utility';
-
-import { selectSdrState } from './';
-import { DataNetwork, QuantityDistribution, ResearchAge, SdrState } from './sdr.reducer';
 import { selectRouterState } from '../router';
+import { CustomRouterState } from '../router/router.reducer';
 import { selectIsStompConnected, selectStompState } from '../stomp';
+import { StompState } from '../stomp/stomp.reducer';
+import { selectSdrState } from './';
+import { AcademicAge, DataNetwork, QuantityDistribution, SdrState } from './sdr.reducer';
 
 import * as fromDialog from '../dialog/dialog.actions';
 import * as fromRouter from '../router/router.actions';
+import * as fromSidebar from '../sidebar/sidebar.actions';
 import * as fromStomp from '../stomp/stomp.actions';
 import * as fromSdr from './sdr.actions';
-import * as fromSidebar from '../sidebar/sidebar.actions';
 
 @Injectable()
 export class SdrEffects {
@@ -105,7 +97,7 @@ export class SdrEffects {
         .get(action.name)
         .getOne(action.payload.id)
         .pipe(
-          map((document: SolrDocument) => new fromSdr.GetOneResourceSuccessAction(action.name, { document })),
+          map((individual: Individual) => new fromSdr.GetOneResourceSuccessAction(action.name, { individual, queue: action.payload.queue })),
           catchError((response) =>
             scheduled(
               [
@@ -122,7 +114,12 @@ export class SdrEffects {
 
   getOneSuccess = createEffect(() => this.actions.pipe(
     ofType(...this.buildActions(fromSdr.SdrActionTypes.GET_ONE_SUCCESS)),
-    switchMap((action: fromSdr.GetOneResourceSuccessAction) => this.waitForStompConnection(action.name)),
+    switchMap((action: fromSdr.GetOneResourceSuccessAction) => {
+      if (!!action.payload.queue && action.payload.queue.length > 0) {
+        this.store.dispatch(action.payload.queue.pop());
+      }
+      return this.waitForStompConnection(action.name);
+    }),
     withLatestFrom(this.store.pipe(select(selectStompState))),
     map(([combination, stomp]) => this.subscribeToResourceQueue(combination[0], stomp))
   ), { dispatch: false });
@@ -166,18 +163,18 @@ export class SdrEffects {
     map((action: fromSdr.GetNetworkFailureAction) => this.alert.getNetworkFailureAlert(action.payload))
   ));
 
-  getResearchAge = createEffect(() => this.actions.pipe(
-    ofType(...this.buildActions(fromSdr.SdrActionTypes.GET_RESEARCH_AGE)),
-    switchMap((action: fromSdr.GetResearchAgeAction) =>
+  getAcademicAge = createEffect(() => this.actions.pipe(
+    ofType(...this.buildActions(fromSdr.SdrActionTypes.GET_ACADEMIC_AGE)),
+    switchMap((action: fromSdr.GetAcademicAgeAction) =>
       this.repos
         .get(action.name)
-        .getResearchAge(action.payload.query, action.payload.filters, action.payload.label, action.payload.dateField, action.payload.accumulateMultivaluedDate, action.payload.averageOverInterval, action.payload.upperLimitInYears, action.payload.groupingIntervalInYears)
+        .getAcademicAge(action.payload.query, action.payload.filters, action.payload.label, action.payload.dateField, action.payload.accumulateMultivaluedDate, action.payload.averageOverInterval, action.payload.upperLimitInYears, action.payload.groupingIntervalInYears)
         .pipe(
-          map((researchAge: ResearchAge) => new fromSdr.GetResearchAgeSuccessAction(action.name, { researchAge, queue: action.payload.queue })),
+          map((academicAge: AcademicAge) => new fromSdr.GetAcademicAgeSuccessAction(action.name, { academicAge, queue: action.payload.queue })),
           catchError((response) =>
             scheduled(
               [
-                new fromSdr.GetResearchAgeFailureAction(action.name, {
+                new fromSdr.GetAcademicAgeFailureAction(action.name, {
                   response,
                 }),
               ],
@@ -188,21 +185,21 @@ export class SdrEffects {
     )
   ));
 
-  getResearchAgeSuccess = createEffect(() => this.actions.pipe(
-    ofType(...this.buildActions(fromSdr.SdrActionTypes.GET_RESEARCH_AGE_SUCCESS)),
+  getAcademicAgeSuccess = createEffect(() => this.actions.pipe(
+    ofType(...this.buildActions(fromSdr.SdrActionTypes.GET_ACADEMIC_AGE_SUCCESS)),
     // TODO: determine utility and use of stomp connection for each success action dispatched (only applicable to asynchronous REST actions in which we want to switch to full duplex)
-    // switchMap((action: fromSdr.GetResearchAgeSuccessAction) => this.waitForStompConnection(action.name)),
+    // switchMap((action: fromSdr.GetAcademicAgeSuccessAction) => this.waitForStompConnection(action.name)),
     // withLatestFrom(this.store.pipe(select(selectStompState))),
-    map((action: fromSdr.GetResearchAgeSuccessAction) => {
+    map((action: fromSdr.GetAcademicAgeSuccessAction) => {
       if (action.payload.queue.length > 0) {
         this.store.dispatch(action.payload.queue.pop());
       }
     })
   ), { dispatch: false });
 
-  getResearchAgeFailure = createEffect(() => this.actions.pipe(
-    ofType(...this.buildActions(fromSdr.SdrActionTypes.GET_RESEARCH_AGE_FAILURE)),
-    map((action: fromSdr.GetResearchAgeFailureAction) => this.alert.getResearchAgeFailureAlert(action.payload))
+  getAcademicAgeFailure = createEffect(() => this.actions.pipe(
+    ofType(...this.buildActions(fromSdr.SdrActionTypes.GET_ACADEMIC_AGE_FAILURE)),
+    map((action: fromSdr.GetAcademicAgeFailureAction) => this.alert.getAcademicAgeFailureAlert(action.payload))
   ));
 
   getQuantityDistribution = createEffect(() => this.actions.pipe(
@@ -291,9 +288,9 @@ export class SdrEffects {
         .findByTypesIn(action.payload.types)
         .pipe(
           map(
-            (document: SolrDocument) =>
+            (individual: Individual) =>
               new fromSdr.FindByTypesInResourceSuccessAction(action.name, {
-                document,
+                individual,
               })
           ),
           catchError((response) =>
@@ -326,8 +323,8 @@ export class SdrEffects {
     ofType(...this.buildActions(fromSdr.SdrActionTypes.FETCH_LAZY_REFERENCE)),
     switchMap((action: fromSdr.FetchLazyReferenceAction) => {
       const field = action.payload.field;
-      const document = action.payload.document;
-      const ids = Array.isArray(document[field]) ? document[field].map((property) => property.id) : [document[field].id];
+      const individual = action.payload.individual;
+      const ids = Array.isArray(individual[field]) ? individual[field].map((property) => property.id) : [individual[field].id];
       return this.repos
         .get('individual')
         .findByIdIn(ids)
@@ -335,7 +332,7 @@ export class SdrEffects {
           map(
             (resources: SdrCollection) =>
               new fromSdr.FetchLazyReferenceSuccessAction(action.name, {
-                document,
+                individual,
                 field,
                 resources,
               })
@@ -669,6 +666,7 @@ export class SdrEffects {
   ), { dispatch: false });
 
   initViews = createEffect(() => defer(() => scheduled([
+    new fromSdr.GetAllResourcesAction('dataAndAnalyticsViews'),
     new fromSdr.GetAllResourcesAction('directoryViews'),
     new fromSdr.GetAllResourcesAction('discoveryViews')
   ], asapScheduler)));
@@ -745,7 +743,7 @@ export class SdrEffects {
 
       const sdrFacets: SdrFacet[] = action.payload.collection.facets;
 
-      const sidebarMenu: SidebarMenu = {
+      const menu: SidebarMenu = {
         sections: [],
       };
 
@@ -761,13 +759,15 @@ export class SdrEffects {
             const sidebarSection: SidebarSection = {
               title: viewFacet.name,
               items: [],
-              collapsible: true,
-              collapsed: expanded.indexOf(encodeURIComponent(viewFacet.name)) >= 0 ? false : viewFacet.collapsed,
+              expandable: viewFacet.expandable,
+              collapsible: viewFacet.collapsible,
+              collapsed: expanded.indexOf(encodeURIComponent(viewFacet.name)) < 0,
+              useDialog: viewFacet.useDialog
             };
 
             const selectedFilterValues = [];
 
-            sidebarMenu.sections.push(sidebarSection);
+            menu.sections.push(sidebarSection);
 
             sdrFacet.entries.content
               .filter((facetEntry: SdrFacetEntry) => facetEntry.value.length > 0)
@@ -846,7 +846,7 @@ export class SdrEffects {
         });
 
       if (action.payload.collection.page.totalElements === 0) {
-        sidebarMenu.sections.push({
+        menu.sections.push({
           title: this.translate.instant('SHARED.SIDEBAR.INFO.NO_RESULTS_LABEL', {
             view: route.params.view,
           }),
@@ -861,12 +861,14 @@ export class SdrEffects {
               queryParams: {},
             },
           ],
+          expandable: true,
           collapsible: false,
           collapsed: false,
+          useDialog: false
         });
       }
 
-      this.store.dispatch(new fromSidebar.LoadSidebarAction({ menu: sidebarMenu }));
+      this.store.dispatch(new fromSidebar.LoadSidebarAction({ menu }));
     }
   }
 

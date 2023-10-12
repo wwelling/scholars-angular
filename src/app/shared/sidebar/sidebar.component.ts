@@ -1,21 +1,18 @@
 import { isPlatformBrowser, isPlatformServer } from '@angular/common';
-import { Component, OnInit, Inject, PLATFORM_ID } from '@angular/core';
-import { Store, select, Action } from '@ngrx/store';
-
+import { Component, Inject, OnInit, PLATFORM_ID } from '@angular/core';
+import { Params, Router } from '@angular/router';
+import { Action, Store, select } from '@ngrx/store';
 import { Observable } from 'rxjs';
 
-import { AppState } from '../../core/store';
 import { SidebarMenu, SidebarSection } from '../../core/model/sidebar';
-
+import { AppState } from '../../core/store';
 import { selectIsSidebarCollapsed } from '../../core/store/layout';
+import { selectRouterUrl } from '../../core/store/router';
+import { selectResourceIsLoading } from '../../core/store/sdr';
 import { selectMenu } from '../../core/store/sidebar';
-
 import { fadeIn } from '../utilities/animation.utility';
 
 import * as fromSidebar from '../../core/store/sidebar/sidebar.actions';
-import { Params, Router } from '@angular/router';
-import { selectRouterUrl } from 'src/app/core/store/router';
-import { selectResourceIsLoading } from 'src/app/core/store/sdr';
 
 @Component({
   selector: 'scholars-sidebar',
@@ -46,8 +43,12 @@ export class SidebarComponent implements OnInit {
     this.loading = this.store.pipe(select(selectResourceIsLoading('individual')));
   }
 
-  public toggleSectionCollapse(sectionIndex: number): void {
-    this.store.dispatch(new fromSidebar.ToggleCollapsibleSectionAction({ sectionIndex }));
+  public onSelectSection(section: SidebarSection, sectionIndex: number): void {
+    if (section.useDialog) {
+      this.store.dispatch(section.action);
+    } else {
+      this.store.dispatch(new fromSidebar.ToggleCollapsibleSectionAction({ sectionIndex }));
+    }
   }
 
   public dispatchAction(event: any, action: Action): void {
@@ -73,15 +74,12 @@ export class SidebarComponent implements OnInit {
     const expanded = tree.queryParams.expanded ? tree.queryParams.expanded.split(',') : [];
     const encodedTitle = encodeURIComponent(section.title);
     const index = expanded.indexOf(encodedTitle);
-    const isCollapsed = section.collapsed;
-    if (isCollapsed) {
-      if (index < 0) {
+    if (section.collapsed) {
+      if (section.expandable && index < 0) {
         expanded.push(encodedTitle);
       }
-    } else {
-      if (index >= 0) {
-        expanded.splice(index, 1);
-      }
+    } else if (section.collapsible && index >= 0) {
+      expanded.splice(index, 1);
     }
     if (expanded.length > 0) {
       tree.queryParams.expanded = expanded.join(',');

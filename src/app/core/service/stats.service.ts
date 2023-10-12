@@ -1,7 +1,8 @@
 import { Inject, Injectable, PLATFORM_ID } from '@angular/core';
 import { Params } from '@angular/router';
 import { Observable } from 'rxjs';
-import { AppConfig, APP_CONFIG } from 'src/app/app.config';
+
+import { APP_CONFIG, AppConfig } from '../../app.config';
 import { RestService } from './rest.service';
 import { isPlatformBrowser } from '@angular/common';
 

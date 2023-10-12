@@ -1,12 +1,12 @@
 import { Routes } from '@angular/router';
 
 import { AdminComponent } from './admin.component';
-import { ThemesComponent } from './themes/themes.component';
-import { UsersComponent } from './users/users.component';
-
 import { DirectoryViewsComponent } from './directory-views/directory-views.component';
 import { DiscoveryViewsComponent } from './discovery-views/discovery-views.component';
 import { DisplayViewsComponent } from './display-views/display-views.component';
+import { ThemesComponent } from './themes/themes.component';
+import { UsersComponent } from './users/users.component';
+import { DataAndAnalyticsViewsComponent } from './data-and-analytics-views/data-and-analytics-views.component';
 
 export const routes: Routes = [
   {
@@ -48,6 +48,19 @@ export const routes: Routes = [
             {
               name: 'view',
               content: 'Scholars Administration - Display Views',
+            },
+          ],
+        },
+      },
+      {
+        path: 'DataAndAnalyticsViews',
+        component: DataAndAnalyticsViewsComponent,
+        data: {
+          collection: 'dataAndAnalyticsViews',
+          tags: [
+            {
+              name: 'view',
+              content: 'Scholars Administration - Data and Analytics Views',
             },
           ],
         },

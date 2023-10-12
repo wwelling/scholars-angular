@@ -1,7 +1,7 @@
-import { createSelector, createFeatureSelector } from '@ngrx/store';
+import { createFeatureSelector, createSelector } from '@ngrx/store';
 
-import { DiscoveryView, DisplayView, DirectoryView, CollectionView, Filter } from '../../model/view';
 import { SdrResource } from '../../model/sdr';
+import { CollectionView, DirectoryView, DiscoveryView, DisplayView, Filter } from '../../model/view';
 
 import * as fromSdr from './sdr.reducer';
 
@@ -25,7 +25,7 @@ export const selectResourcesFacets = <R extends SdrResource>(name: string) => cr
 export const selectResourcesLinks = <R extends SdrResource>(name: string) => createSelector(selectSdrState<R>(name), fromSdr.getLinks);
 export const selectResourcesRecentlyUpdated = <R extends SdrResource>(name: string) => createSelector(selectSdrState<R>(name), fromSdr.getRecentlyUpdated);
 export const selectResourcesDataNetwork = <R extends SdrResource>(name: string) => createSelector(selectSdrState<R>(name), fromSdr.getDataNetwork);
-export const selectResourcesResearchAge = <R extends SdrResource>(name: string) => createSelector(selectSdrState<R>(name), fromSdr.getResearchAge);
+export const selectResourcesAcademicAge = <R extends SdrResource>(name: string) => createSelector(selectSdrState<R>(name), fromSdr.getAcademicAge);
 export const selectResourcesQuantityDistribution = <R extends SdrResource>(name: string) => createSelector(selectSdrState<R>(name), fromSdr.getQuantityDistribution);
 
 export const selectResourceById = <R extends SdrResource>(name: string, id: string) => createSelector(selectResourceEntities<R>(name), (resources) => resources[id]);

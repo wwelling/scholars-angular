@@ -1,6 +1,7 @@
 import { isPlatformBrowser } from '@angular/common';
 import { Params } from '@angular/router';
 
+import { Individual } from '../../core/model/discovery';
 import { Direction } from '../../core/model/request';
 import { SdrPage } from '../../core/model/sdr';
 import { Boost, CollectionView, DiscoveryView, Export, Facet, FacetType, Filter, OpKey, Sort } from '../../core/model/view';
@@ -9,13 +10,21 @@ import { FILTER_VALUE_DELIMITER } from './discovery.utility';
 const addFacetsToQueryParams = (queryParams: Params, collectionView: CollectionView): void => {
   if (collectionView.facets && collectionView.facets.length > 0) {
     queryParams.facets = '';
+    const expanded = [];
     collectionView.facets.forEach((facet: Facet) => {
       queryParams.facets += queryParams.facets.length > 0 ? `,${facet.field}` : facet.field;
       ['type', 'pageSize', 'pageNumber', 'rangeStart', 'rangeEnd', 'rangeGap'].forEach((key: string) => {
         queryParams[`${facet.field}.${key}`] = facet[key];
       });
       queryParams[`${facet.field}.sort`] = `${facet.sort},${facet.direction}`;
+
+      if (!facet.collapsed) {
+        expanded.push(encodeURIComponent(facet.name));
+      }
     });
+    if (expanded.length > 0) {
+      queryParams.expanded = expanded.join(',');
+    }
   }
 };
 
@@ -136,6 +145,15 @@ const getQueryParams = (collectionView: CollectionView): Params => {
   return queryParams;
 };
 
+const getQueryParamsForFacets = (collectionView: CollectionView): Params => {
+  const queryParams: Params = {};
+  addFieldsToQueryParams(queryParams, collectionView);
+  addFacetsToQueryParams(queryParams, collectionView);
+  addFiltersToQueryParams(queryParams, collectionView);
+  addSortToQueryParams(queryParams, collectionView);
+  return queryParams;
+};
+
 const showFilter = (collectionView: CollectionView, actualFilter: Filter): boolean => {
   for (const filter of collectionView.filters) {
     if (equals(filter, actualFilter)) {
@@ -183,14 +201,14 @@ const equals = (filterOne: Filter, filterTwo: Filter): boolean => {
  * }
  * i.e. `trainee.label` returns 'Name of organizarion'
  *
- * @param doc solr document or any JSON object
+ * @param individual solr individual or any JSON object
  * @param path dot notation path
  * @returns value at path
  */
-const getValueByPath = (doc: any, path: string): string | undefined => {
+const getValueByPath = (individual: Individual, path: string): string | undefined => {
   let pathValue;
   path.split('.').forEach((p: string) => {
-    pathValue = pathValue ? pathValue[p] : doc[p];
+    pathValue = pathValue ? pathValue[p] : individual[p];
   });
   return pathValue;
 };
@@ -253,16 +271,10 @@ const loadBadges = (platformId: string): void => {
 };
 
 export {
-  addExportToQueryParams,
-  removeFilterFromQueryParams,
-  resetFiltersInQueryParams,
-  getQueryParams,
-  showFilter,
-  showClearFilters,
-  getFilterField,
-  getFilterValue,
-  hasExport,
-  getResourcesPage,
-  getSubsectionResources,
-  loadBadges
+  addExportToQueryParams, getFilterField,
+  getFilterValue, getQueryParams,
+  getQueryParamsForFacets, getResourcesPage,
+  getSubsectionResources, hasExport, loadBadges, removeFilterFromQueryParams,
+  resetFiltersInQueryParams, showClearFilters, showFilter
 };
+

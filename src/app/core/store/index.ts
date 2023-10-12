@@ -1,15 +1,11 @@
 import { InjectionToken } from '@angular/core';
-
 import { ActionReducerMap, MetaReducer } from '@ngrx/store';
 
-import { AppConfig, APP_CONFIG } from '../../app.config';
-
+import { APP_CONFIG, AppConfig } from '../../app.config';
 import { Individual } from '../model/discovery';
-
 import { Theme } from '../model/theme';
 import { User } from '../model/user';
-
-import { DirectoryView, DiscoveryView, DisplayView } from '../model/view';
+import { DataAndAnalyticsView, DirectoryView, DiscoveryView, DisplayView } from '../model/view';
 
 import * as fromRouter from '@ngrx/router-store';
 
@@ -19,11 +15,11 @@ import * as fromDialog from './dialog/dialog.reducer';
 import * as fromLanguage from './language/language.reducer';
 import * as fromLayout from './layout/layout.reducer';
 import * as fromMetadata from './metadata/metadata.reducer';
-import * as fromSidebar from './sidebar/sidebar.reducer';
+import * as fromRootStore from './root-store.reducer';
 import * as fromSdr from './sdr/sdr.reducer';
+import * as fromSidebar from './sidebar/sidebar.reducer';
 import * as fromStomp from './stomp/stomp.reducer';
 import * as fromTheme from './theme/theme.reducer';
-import * as fromRootStore from './root-store.reducer';
 
 export interface AppState {
   alert: fromAlert.AlertState;
@@ -38,6 +34,7 @@ export interface AppState {
   individual: fromSdr.SdrState<Individual>;
   themes: fromSdr.SdrState<Theme>;
   users: fromSdr.SdrState<User>;
+  dataAndAnalyticsViews: fromSdr.SdrState<DataAndAnalyticsView>;
   directoryViews: fromSdr.SdrState<DirectoryView>;
   discoveryViews: fromSdr.SdrState<DiscoveryView>;
   displayViews: fromSdr.SdrState<DisplayView>;
@@ -63,6 +60,7 @@ export const reducers = (appConfig: AppConfig): ActionReducerMap<AppState> => {
     individual: fromSdr.getSdrReducer<Individual>('individual', additionalContext),
     themes: fromSdr.getSdrReducer<Theme>('themes', additionalContext),
     users: fromSdr.getSdrReducer<User>('users', additionalContext),
+    dataAndAnalyticsViews: fromSdr.getSdrReducer<DataAndAnalyticsView>('dataAndAnalyticsViews', additionalContext),
     directoryViews: fromSdr.getSdrReducer<DirectoryView>('directoryViews', additionalContext),
     discoveryViews: fromSdr.getSdrReducer<DiscoveryView>('discoveryViews', additionalContext),
     displayViews: fromSdr.getSdrReducer<DisplayView>('displayViews', additionalContext),

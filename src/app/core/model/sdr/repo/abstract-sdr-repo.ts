@@ -7,7 +7,7 @@ import { RestService } from '../../../service/rest.service';
 import { SdrRepo } from './sdr-repo';
 
 import { APP_CONFIG, AppConfig } from '../../../../app.config';
-import { DataNetwork, QuantityDistribution, ResearchAge } from '../../../store/sdr/sdr.reducer';
+import { DataNetwork, QuantityDistribution, AcademicAge } from '../../../store/sdr/sdr.reducer';
 import { Boostable, Facetable, Filterable, SdrRequest, Sort } from '../../request';
 import { Queryable } from '../../request/sdr.request';
 import { Count } from '../count';
@@ -56,7 +56,7 @@ export abstract class AbstractSdrRepo<R extends SdrResource> implements SdrRepo<
     return this.restService.get<DataNetwork>(`${this.appConfig.serviceUrl}/${this.path()}/${id}/network?dateField=${dateField}&dataFields=${dataFields.join(',')}&typeFilter=${typeFilter}`);
   }
 
-  public getResearchAge(
+  public getAcademicAge(
     query: Queryable,
     filters: Filterable[],
     label: string,
@@ -65,8 +65,8 @@ export abstract class AbstractSdrRepo<R extends SdrResource> implements SdrRepo<
     averageOverInterval: boolean = false,
     upperLimitInYears: number,
     groupingIntervalInYears: number
-  ): Observable<ResearchAge> {
-    return this.restService.get<ResearchAge>(`${this.appConfig.serviceUrl}/${this.path()}/analytics/researchAge${this.mapParameters({ query, filters })}&label=${label}&dateField=${dateField}&accumulateMultivaluedDate=${accumulateMultivaluedDate}&averageOverInterval=${averageOverInterval}&upperLimitInYears=${upperLimitInYears}&groupingIntervalInYears=${groupingIntervalInYears}`);
+  ): Observable<AcademicAge> {
+    return this.restService.get<AcademicAge>(`${this.appConfig.serviceUrl}/${this.path()}/analytics/academicAge${this.mapParameters({ query, filters })}&label=${label}&dateField=${dateField}&accumulateMultivaluedDate=${accumulateMultivaluedDate}&averageOverInterval=${averageOverInterval}&upperLimitInYears=${upperLimitInYears}&groupingIntervalInYears=${groupingIntervalInYears}`);
   }
 
   public getQuantityDistribution(
@@ -118,20 +118,19 @@ export abstract class AbstractSdrRepo<R extends SdrResource> implements SdrRepo<
   }
 
   public post(resource: R): Observable<R> {
-    return this.restService.post<R>(`${this.appConfig.serviceUrl}/${this.path()}`, resource, { withCredentials: true });
+    return this.restService.post<R>(`${this.appConfig.serviceUrl}/${this.path()}`, resource);
   }
 
   public put(resource: R): Observable<R> {
-    return this.restService.put<R>(resource._links.self.href, resource, { withCredentials: true });
+    return this.restService.put<R>(resource._links.self.href, resource);
   }
 
   public patch(resource: R): Observable<R> {
-    return this.restService.patch<R>(resource._links.self.href, resource, { withCredentials: true });
+    return this.restService.patch<R>(resource._links.self.href, resource);
   }
 
   public delete(resource: R): Observable<string> {
     return this.restService.delete<string>(resource._links.self.href, {
-      withCredentials: true,
       responseType: 'text',
     });
   }

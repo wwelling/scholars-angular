@@ -15,6 +15,15 @@ const routes: Routes = [
     },
   },
   {
+    path: 'data-and-analytics',
+    loadChildren: () => import('./+data-and-analytics').then((m) => m.DataAndAnalyticsModule),
+    canActivate: [AuthGuard],
+    data: {
+      roles: [Role.ROLE_SUPER_ADMIN, Role.ROLE_ADMIN],
+      tags: [{ name: 'view', content: 'Scholars Data and Analytics' }],
+    },
+  },
+  {
     path: 'directory',
     loadChildren: () => import('./+directory').then((m) => m.DirectoryModule),
     canActivate: [],
@@ -56,7 +65,7 @@ const routes: Routes = [
   },
   { path: 'individual/:id', redirectTo: '/display/:id', pathMatch: 'full' },
   { path: 'individual/:id/:view/:tab', redirectTo: '/display/:id/:view/:tab', pathMatch: 'full' },
-  { path: '**', redirectTo: '' },
+  { path: '**', redirectTo: '/' },
 ];
 
 @NgModule({

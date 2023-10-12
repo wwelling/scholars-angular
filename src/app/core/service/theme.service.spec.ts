@@ -1,17 +1,14 @@
 import { DOCUMENT } from '@angular/common';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { inject, TestBed } from '@angular/core/testing';
-
 import { REQUEST } from '@nguniversal/express-engine/tokens';
 
+import { testAppConfig } from '../../../test.config';
+import { createStyleLoader, getRequest } from '../../app.browser.module';
+import { APP_CONFIG } from '../../app.config';
+import { ComputedStyleLoader } from '../computed-style-loader';
 import { RestService } from './rest.service';
 import { ThemeService } from './theme.service';
-
-import { getRequest, createStyleLoader } from '../../app.browser.module';
-
-import { ComputedStyleLoader } from '../computed-style-loader';
-import { testAppConfig } from '../../../test.config';
-import { APP_CONFIG } from 'src/app/app.config';
 
 describe('ThemeService', () => {
   beforeEach(() => {

@@ -1,7 +1,8 @@
 import { Action } from '@ngrx/store';
-import { SdrRequest, Filterable } from '../../model/request';
-import { SdrCollection, Count } from '../../model/sdr';
+
+import { Filterable, SdrRequest } from '../../model/request';
 import { Queryable } from '../../model/request/sdr.request';
+import { Count, SdrCollection } from '../../model/sdr';
 
 export enum SdrActionTypes {
   GET_ALL = 'get all resources',
@@ -25,18 +26,18 @@ export enum SdrActionTypes {
   GET_NETWORK = 'get network for resource by id',
   GET_NETWORK_SUCCESS = 'sucessfully got network for resource by id',
   GET_NETWORK_FAILURE = 'failed getting network for resource by id',
-  GET_RESEARCH_AGE = 'get research age analytics for resource',
-  GET_RESEARCH_AGE_SUCCESS = 'sucessfully got research age analytics for resource',
-  GET_RESEARCH_AGE_FAILURE = 'failed getting research age analytics for resource',
+  GET_ACADEMIC_AGE = 'get academic age analytics for resource',
+  GET_ACADEMIC_AGE_SUCCESS = 'sucessfully got academic age analytics for resource',
+  GET_ACADEMIC_AGE_FAILURE = 'failed getting academic age analytics for resource',
   GET_QUANTITY_DISTRIBUTION = 'get quantity distribution analytics for resource',
   GET_QUANTITY_DISTRIBUTION_SUCCESS = 'sucessfully got quantity distribution analytics for resource',
   GET_QUANTITY_DISTRIBUTION_FAILURE = 'failed getting quantity distribution analytics for resource',
   FIND_BY_ID_IN = 'find resource by id in',
   FIND_BY_ID_IN_SUCCESS = 'sucessfully found resource by id in',
-  FIND_BY_ID_IN_FAILURE = 'failed finding resource by id is',
+  FIND_BY_ID_IN_FAILURE = 'failed finding resource by id in',
   FIND_BY_TYPES_IN = 'find resource by types in',
   FIND_BY_TYPES_IN_SUCCESS = 'sucessfully found resource by types in',
-  FIND_BY_TYPES_IN_FAILURE = 'failed finding resource by types is',
+  FIND_BY_TYPES_IN_FAILURE = 'failed finding resource by types in',
   FETCH_LAZY_REFERENCE = 'fetch lazy reference',
   FETCH_LAZY_REFERENCE_SUCCESS = 'sucessfully fetched lazy reference',
   FETCH_LAZY_REFERENCE_FAILURE = 'failed fetching lazy reference',
@@ -53,6 +54,8 @@ export enum SdrActionTypes {
   DELETE_SUCCESS = 'sucessfully deleteed resource',
   DELETE_FAILURE = 'failed deleting resource',
   CLEAR = 'clear resources',
+  CLEAR_ACADEMIC_AGE = 'clear academic age',
+  CLEAR_RESOURCE_BY_ID = 'clear resource by id',
 }
 
 export const getSdrAction = (actionType: SdrActionTypes, name: string): string => {
@@ -136,7 +139,10 @@ export class RecentlyUpdatedResourcesFailureAction implements Action {
 
 export class GetOneResourceAction implements Action {
   readonly type = getSdrAction(SdrActionTypes.GET_ONE, this.name);
-  constructor(public name: string, public payload: { id: number }) { }
+  constructor(public name: string, public payload: {
+    id: number | string,
+    queue?: Array<GetOneResourceAction>,
+  }) { }
 }
 
 export class GetOneResourceSuccessAction implements Action {
@@ -169,8 +175,8 @@ export class GetNetworkFailureAction implements Action {
   constructor(public name: string, public payload: any) { }
 }
 
-export class GetResearchAgeAction implements Action {
-  readonly type = getSdrAction(SdrActionTypes.GET_RESEARCH_AGE, this.name);
+export class GetAcademicAgeAction implements Action {
+  readonly type = getSdrAction(SdrActionTypes.GET_ACADEMIC_AGE, this.name);
   constructor(public name: string, public payload: {
     label: string;
     query?: Queryable;
@@ -184,13 +190,13 @@ export class GetResearchAgeAction implements Action {
   }) { }
 }
 
-export class GetResearchAgeSuccessAction implements Action {
-  readonly type = getSdrAction(SdrActionTypes.GET_RESEARCH_AGE_SUCCESS, this.name);
+export class GetAcademicAgeSuccessAction implements Action {
+  readonly type = getSdrAction(SdrActionTypes.GET_ACADEMIC_AGE_SUCCESS, this.name);
   constructor(public name: string, public payload: any) { }
 }
 
-export class GetResearchAgeFailureAction implements Action {
-  readonly type = getSdrAction(SdrActionTypes.GET_RESEARCH_AGE_FAILURE, this.name);
+export class GetAcademicAgeFailureAction implements Action {
+  readonly type = getSdrAction(SdrActionTypes.GET_ACADEMIC_AGE_FAILURE, this.name);
   constructor(public name: string, public payload: any) { }
 }
 
@@ -247,12 +253,12 @@ export class FindByTypesInResourceFailureAction implements Action {
 
 export class FetchLazyReferenceAction implements Action {
   readonly type = getSdrAction(SdrActionTypes.FETCH_LAZY_REFERENCE, this.name);
-  constructor(public name: string, public payload: { document: any; field: string }) { }
+  constructor(public name: string, public payload: { individual: any; field: string }) { }
 }
 
 export class FetchLazyReferenceSuccessAction implements Action {
   readonly type = getSdrAction(SdrActionTypes.FETCH_LAZY_REFERENCE_SUCCESS, this.name);
-  constructor(public name: string, public payload: { document: any; field: string; resources: SdrCollection }) { }
+  constructor(public name: string, public payload: { individual: any; field: string; resources: SdrCollection }) { }
 }
 
 export class FetchLazyReferenceFailureAction implements Action {
@@ -325,6 +331,16 @@ export class ClearResourcesAction implements Action {
   constructor(public name: string, public payload?: any) { }
 }
 
+export class ClearAcademicAgeAction implements Action {
+  readonly type = getSdrAction(SdrActionTypes.CLEAR_ACADEMIC_AGE, this.name);
+  constructor(public name: string, public payload?: any) { }
+}
+
+export class ClearResourceByIdAction implements Action {
+  readonly type = getSdrAction(SdrActionTypes.CLEAR_RESOURCE_BY_ID, this.name);
+  constructor(public name: string, public payload: { id: string }) { }
+}
+
 export type SdrActions =
   GetAllResourcesAction |
   GetAllResourcesSuccessAction |
@@ -347,9 +363,9 @@ export type SdrActions =
   GetNetworkAction |
   GetNetworkSuccessAction |
   GetNetworkFailureAction |
-  GetResearchAgeAction |
-  GetResearchAgeSuccessAction |
-  GetResearchAgeFailureAction |
+  GetAcademicAgeAction |
+  GetAcademicAgeSuccessAction |
+  GetAcademicAgeFailureAction |
   GetQuantityDistributionAction |
   GetQuantityDistributionSuccessAction |
   GetQuantityDistributionFailureAction |
@@ -374,4 +390,6 @@ export type SdrActions =
   DeleteResourceAction |
   DeleteResourceSuccessAction |
   DeleteResourceFailureAction |
-  ClearResourcesAction;
+  ClearResourcesAction |
+  ClearAcademicAgeAction |
+  ClearResourceByIdAction;

@@ -14,7 +14,8 @@ export enum OpKey {
 
 export enum Layout {
   LIST = 'LIST',
-  GRID = 'GRID'
+  GRID = 'GRID',
+  CONTAINER = 'CONTAINER'
 }
 
 export enum FacetType {
@@ -47,7 +48,10 @@ export interface Facet {
   readonly pageNumber: number;
   readonly sort: FacetSort;
   readonly direction: Direction;
+  readonly expandable: boolean;
+  readonly collapsible: boolean;
   readonly collapsed: boolean;
+  readonly useDialog: boolean;
   readonly hidden: boolean;
   readonly rangeStart?: string;
   readonly rangeEnd?: string;

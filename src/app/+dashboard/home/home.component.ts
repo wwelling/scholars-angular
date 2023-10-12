@@ -1,21 +1,18 @@
-import { Component, OnInit, OnDestroy, ViewEncapsulation } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
+import { Component, Inject, OnInit, PLATFORM_ID, ViewEncapsulation } from '@angular/core';
 import { DomSanitizer, SafeStyle } from '@angular/platform-browser';
 import { ActivatedRoute, Params } from '@angular/router';
 import { NgbCarouselConfig } from '@ng-bootstrap/ng-bootstrap';
-
 import { Store, select } from '@ngrx/store';
+import { Observable, Subject } from 'rxjs';
+import { filter, take } from 'rxjs/operators';
 
-import { Subscription, Observable, BehaviorSubject } from 'rxjs';
-import { filter } from 'rxjs/operators';
-
-import { AppState } from '../../core/store';
-import { Home, Hero } from '../../core/model/theme';
+import { Hero, Home } from '../../core/model/theme';
 import { DiscoveryView } from '../../core/model/view';
-
-import { SearchBoxStyles } from '../../shared/search-box/search-box.component';
-
+import { AppState } from '../../core/store';
 import { selectDiscoveryViewByClass } from '../../core/store/sdr';
 import { selectActiveThemeHome, selectActiveThemeOrganization } from '../../core/store/theme';
+import { SearchBoxStyles } from '../../shared/search-box/search-box.component';
 
 import * as fromAuth from '../../core/store/auth/auth.actions';
 
@@ -25,7 +22,7 @@ import * as fromAuth from '../../core/store/auth/auth.actions';
   styleUrls: ['home.component.scss'],
   encapsulation: ViewEncapsulation.None,
 })
-export class HomeComponent implements OnInit, OnDestroy {
+export class HomeComponent implements OnInit {
 
   public discoveryView: Observable<DiscoveryView>;
 
@@ -33,41 +30,38 @@ export class HomeComponent implements OnInit, OnDestroy {
 
   public organization: Observable<string>;
 
-  public searchStyles: BehaviorSubject<SearchBoxStyles>;
+  public searchStyles: Subject<SearchBoxStyles>;
 
-  private subscriptions: Subscription[];
-
-  constructor(public config: NgbCarouselConfig, private sanitizer: DomSanitizer, private route: ActivatedRoute, private store: Store<AppState>) {
-    this.subscriptions = [];
-  }
+  constructor(
+    public config: NgbCarouselConfig,
+    @Inject(PLATFORM_ID) private platformId: string,
+    private sanitizer: DomSanitizer,
+    private route: ActivatedRoute,
+    private store: Store<AppState>
+  ) { }
 
   ngOnInit() {
     this.discoveryView = this.store.pipe(
       select(selectDiscoveryViewByClass('People')),
-      filter((view: DiscoveryView) => view !== undefined)
+      filter((view: DiscoveryView) => !!view)
     );
     this.home = this.store.pipe(
       select(selectActiveThemeHome),
-      filter((home: Home) => home !== undefined)
+      filter((home: Home) => !!home)
     );
     this.organization = this.store.pipe(
       select(selectActiveThemeOrganization),
-      filter((organization: string) => organization !== undefined)
+      filter((organization: string) => !!organization)
     );
-    this.subscriptions.push(
-      this.route.queryParams.subscribe((params: Params) => {
-        if (params.key !== undefined) {
-          this.store.dispatch(new fromAuth.ConfirmRegistrationAction({ key: params.key }));
-        }
-      })
-    );
-    this.searchStyles = new BehaviorSubject<SearchBoxStyles>(undefined);
-  }
-
-  ngOnDestroy() {
-    this.subscriptions.forEach((subscription: Subscription) => {
-      subscription.unsubscribe();
-    });
+    if (isPlatformBrowser(this.platformId)) {
+      this.route.queryParams.pipe(take(1))
+        .subscribe((params: Params) => {
+          if (!!params.key) {
+            this.store.dispatch(new fromAuth.ConfirmRegistrationAction({ key: params.key }));
+          }
+        });
+    }
+    this.searchStyles = new Subject<SearchBoxStyles>();
   }
 
   public showCarousel(home: Home): boolean {

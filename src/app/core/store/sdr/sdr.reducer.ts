@@ -1,12 +1,10 @@
 import { EntityState, createEntityAdapter } from '@ngrx/entity';
 
-import { SdrActionTypes, SdrActions, getSdrAction } from './sdr.actions';
-import { SdrResource, SdrPage, SdrCollectionLinks, SdrFacet, SdrHighlight } from '../../model/sdr';
-
-import { keys } from '../../model/repos';
-
 import { augmentCollectionViewTemplates, augmentDisplayViewTemplates } from '../../../shared/utilities/template.utility';
+import { keys } from '../../model/repos';
+import { SdrCollectionLinks, SdrFacet, SdrHighlight, SdrPage, SdrResource } from '../../model/sdr';
 import { CollectionView, DisplayView } from '../../model/view';
+import { SdrActionTypes, SdrActions, getSdrAction } from './sdr.actions';
 
 export interface DirectedData {
   source: string;
@@ -27,7 +25,7 @@ export interface Datum {
   value: number;
 }
 
-export interface ResearchAge {
+export interface AcademicAge {
   label: string;
   dateField: string;
   ranges: Map<string, string>;
@@ -55,7 +53,7 @@ export interface SdrState<R extends SdrResource> extends EntityState<R> {
   links: SdrCollectionLinks;
   recentlyUpdated: SdrResource[];
   dataNetwork: DataNetwork;
-  researchAge: ResearchAge;
+  academicAge: AcademicAge;
   quantityDistribution: QuantityDistribution;
   counting: boolean;
   loading: boolean;
@@ -78,7 +76,7 @@ export const getSdrInitialState = <R extends SdrResource>(key: string) => {
     links: undefined,
     recentlyUpdated: [],
     dataNetwork: undefined,
-    researchAge: undefined,
+    academicAge: undefined,
     quantityDistribution: undefined,
     counting: false,
     loading: false,
@@ -114,6 +112,7 @@ export const getSdrReducer = <R extends SdrResource>(name: string, additionalCon
   const getResources = (action: SdrActions, key: string): R[] => {
     const resources = action.payload.collection._embedded !== undefined ? action.payload.collection._embedded[key] : [];
     switch (key) {
+      case 'dataAndAnalyticsViews':
       case 'directoryViews':
       case 'discoveryViews':
         resources.forEach((view: CollectionView) => augmentCollectionViewTemplates(view, additionalContext));
@@ -150,8 +149,9 @@ export const getSdrReducer = <R extends SdrResource>(name: string, additionalCon
     return resources;
   };
   const getResource = (action: SdrActions, key: string): R => {
-    const resource = action.payload.document;
+    const resource = action.payload.individual;
     switch (key) {
+      case 'dataAndAnalyticsViews':
       case 'directoryViews':
       case 'discoveryViews':
         augmentCollectionViewTemplates(resource, additionalContext);
@@ -177,7 +177,7 @@ export const getSdrReducer = <R extends SdrResource>(name: string, additionalCon
       case getSdrAction(SdrActionTypes.PAGE, name):
       case getSdrAction(SdrActionTypes.SEARCH, name):
       case getSdrAction(SdrActionTypes.GET_NETWORK, name):
-      case getSdrAction(SdrActionTypes.GET_RESEARCH_AGE, name):
+      case getSdrAction(SdrActionTypes.GET_ACADEMIC_AGE, name):
       case getSdrAction(SdrActionTypes.GET_QUANTITY_DISTRIBUTION, name):
       case getSdrAction(SdrActionTypes.RECENTLY_UPDATED, name):
         return {
@@ -212,22 +212,22 @@ export const getSdrReducer = <R extends SdrResource>(name: string, additionalCon
           loading: false,
           error: undefined,
         };
-      case getSdrAction(SdrActionTypes.GET_RESEARCH_AGE_SUCCESS, name):
-      const researchAge = action.payload.researchAge;
-      return {
-        ...state,
-        researchAge,
-        loading: false,
-        error: undefined,
-      };
+      case getSdrAction(SdrActionTypes.GET_ACADEMIC_AGE_SUCCESS, name):
+        const academicAge = action.payload.academicAge;
+        return {
+          ...state,
+          academicAge,
+          loading: false,
+          error: undefined,
+        };
       case getSdrAction(SdrActionTypes.GET_QUANTITY_DISTRIBUTION_SUCCESS, name):
-      const quantityDistribution = action.payload.quantityDistribution;
-      return {
-        ...state,
-        quantityDistribution,
-        loading: false,
-        error: undefined,
-      };
+        const quantityDistribution = action.payload.quantityDistribution;
+        return {
+          ...state,
+          quantityDistribution,
+          loading: false,
+          error: undefined,
+        };
       case getSdrAction(SdrActionTypes.RECENTLY_UPDATED_SUCCESS, name):
         const recentlyUpdated = action.payload.recentlyUpdated._embedded !== undefined ? action.payload.recentlyUpdated._embedded[name] : [];
         return {
@@ -238,7 +238,7 @@ export const getSdrReducer = <R extends SdrResource>(name: string, additionalCon
         };
       case getSdrAction(SdrActionTypes.FETCH_LAZY_REFERENCE_SUCCESS, name):
         const changes = {};
-        const id = action.payload.document.id;
+        const id = action.payload.individual.id;
         const isArray = Array.isArray(state.entities[id][action.payload.field]);
         // tslint:disable-next-line: no-string-literal
         const embedded = action.payload.resources._embedded.individual;
@@ -292,7 +292,7 @@ export const getSdrReducer = <R extends SdrResource>(name: string, additionalCon
       case getSdrAction(SdrActionTypes.GET_ALL_FAILURE, name):
       case getSdrAction(SdrActionTypes.GET_ONE_FAILURE, name):
       case getSdrAction(SdrActionTypes.GET_NETWORK_FAILURE, name):
-      case getSdrAction(SdrActionTypes.GET_RESEARCH_AGE_FAILURE, name):
+      case getSdrAction(SdrActionTypes.GET_ACADEMIC_AGE_FAILURE, name):
       case getSdrAction(SdrActionTypes.GET_QUANTITY_DISTRIBUTION_FAILURE, name):
       case getSdrAction(SdrActionTypes.FIND_BY_ID_IN_FAILURE, name):
       case getSdrAction(SdrActionTypes.FIND_BY_TYPES_IN_FAILURE, name):
@@ -340,7 +340,7 @@ export const getSdrReducer = <R extends SdrResource>(name: string, additionalCon
           error: action.payload.response,
         };
       case getSdrAction(SdrActionTypes.CLEAR, name):
-        return {
+        return getSdrAdapter<R>(keys[name]).removeAll({
           ...state,
           page: undefined,
           facets: [],
@@ -349,7 +349,16 @@ export const getSdrReducer = <R extends SdrResource>(name: string, additionalCon
           loading: false,
           updating: false,
           error: undefined,
+        });
+      case getSdrAction(SdrActionTypes.CLEAR_ACADEMIC_AGE, name):
+        return {
+          ...state,
+          academicAge: undefined,
         };
+      case getSdrAction(SdrActionTypes.CLEAR_RESOURCE_BY_ID, name):
+        return getSdrAdapter<R>(keys[name]).removeOne(action.payload.id, {
+          ...state,
+        });
     }
     return state;
   };
@@ -373,5 +382,5 @@ export const getFacets = <R extends SdrResource>(state: SdrState<R>) => state.fa
 export const getLinks = <R extends SdrResource>(state: SdrState<R>) => state.links;
 export const getRecentlyUpdated = <R extends SdrResource>(state: SdrState<R>) => state.recentlyUpdated;
 export const getDataNetwork = <R extends SdrResource>(state: SdrState<R>) => state.dataNetwork;
-export const getResearchAge = <R extends SdrResource>(state: SdrState<R>) => state.researchAge;
+export const getAcademicAge = <R extends SdrResource>(state: SdrState<R>) => state.academicAge;
 export const getQuantityDistribution = <R extends SdrResource>(state: SdrState<R>) => state.quantityDistribution;

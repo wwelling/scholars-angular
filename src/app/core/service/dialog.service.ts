@@ -5,12 +5,11 @@ import { TranslateService } from '@ngx-translate/core';
 import { FacetEntriesComponent } from '../../shared/dialog/facet-entries/facet-entries.component';
 import { LoginComponent } from '../../shared/dialog/login/login.component';
 import { NotificationComponent } from '../../shared/dialog/notification/notification.component';
+import { RegistrationComponent, RegistrationStep } from '../../shared/dialog/registration/registration.component';
 import { SearchTipsComponent } from '../../shared/dialog/search-tips/search-tips.component';
 import { UserEditComponent } from '../../shared/dialog/user-edit/user-edit.component';
-import { RegistrationStep, RegistrationComponent } from '../../shared/dialog/registration/registration.component';
-
-import { User } from '../model/user';
 import { RegistrationRequest } from '../model/request';
+import { User } from '../model/user';
 
 import * as fromDialog from '../../core/store/dialog/dialog.actions';
 
@@ -73,12 +72,12 @@ export class DialogService {
     });
   }
 
-  public facetEntriesDialog(name: string, field: string): fromDialog.OpenDialogAction {
+  public facetEntriesDialog(name: string, field: string, multiselect = false, page = 2, pageSize = 10): fromDialog.OpenDialogAction {
     return new fromDialog.OpenDialogAction({
       dialog: {
         ref: {
           component: FacetEntriesComponent,
-          inputs: { name, field },
+          inputs: { name, field, multiselect, page, pageSize },
         },
         options: this.options(this.translate.instant('SHARED.DIALOG.FACET_ENTRIES.ARIA_LABELLED_BY', { name })),
       },

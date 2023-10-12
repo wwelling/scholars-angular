@@ -1,16 +1,13 @@
 import { Component, OnInit } from '@angular/core';
 import { Store, select } from '@ngrx/store';
-
 import { Observable } from 'rxjs';
 import { filter } from 'rxjs/operators';
 
-import { AppState } from '../core/store';
 import { DiscoveryView } from '../core/model/view';
-
-import { WindowDimensions } from '../core/store/layout/layout.reducer';
-
-import { selectDiscoveryViewByClass } from '../core/store/sdr';
+import { AppState } from '../core/store';
 import { selectWindowDimensions } from '../core/store/layout';
+import { WindowDimensions } from '../core/store/layout/layout.reducer';
+import { selectDiscoveryViewByClass } from '../core/store/sdr';
 
 export interface AdminTab {
   route: string[];
@@ -43,6 +40,10 @@ export class AdminComponent implements OnInit {
       {
         route: ['/admin/DisplayViews'],
         translateKey: 'ADMIN.DISPLAY_VIEWS.TITLE',
+      },
+      {
+        route: ['/admin/DataAndAnalyticsViews'],
+        translateKey: 'ADMIN.DATA_AND_ANALYTICS_VIEWS.TITLE',
       },
       {
         route: ['/admin/Themes'],

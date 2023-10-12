@@ -3,18 +3,12 @@ import { NgModule } from '@angular/core';
 import { RouterModule } from '@angular/router';
 import { MissingTranslationHandler, TranslateModule } from '@ngx-translate/core';
 
-import { SharedModule } from '../shared/shared.module';
-
 import { CustomMissingTranslationHandler } from '../core/handler/custom-missing-translation.handler';
-
-import { VisualizationComponent } from './visualization.component';
-
-import { BarplotComponent } from './barplot/barplot.component';
+import { SharedModule } from '../shared/shared.module';
 import { ChordDiagramComponent } from './chord-diagram/chord-diagram.component';
 import { CoAuthorNetworkComponent } from './co-author-network/co-author-network.component';
 import { CoInvestigatorNetworkComponent } from './co-investigator-network/co-investigator-network.component';
-import { QuantityDistributionComponent } from './quantity-distribution/quantity-distribution.component';
-import { ResearchAgeComponent } from './research-age/research-age.component';
+import { VisualizationComponent } from './visualization.component';
 import { routes } from './visualization.routes';
 
 @NgModule({
@@ -23,9 +17,6 @@ import { routes } from './visualization.routes';
     ChordDiagramComponent,
     CoAuthorNetworkComponent,
     CoInvestigatorNetworkComponent,
-    BarplotComponent,
-    ResearchAgeComponent,
-    QuantityDistributionComponent
   ],
   imports: [
     CommonModule,
