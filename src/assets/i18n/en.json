@@ -130,8 +130,8 @@
   },
   "FOOTER": {
     "ADMINISTRATION": "Administration",
-    "REGISTRATION": "Sign Up",
-    "LOGIN": "Login",
+    "REGISTRATION": "Admin Sign Up",
+    "LOGIN": "Admin Login",
     "LOGOUT": "Logout",
     "COPYRIGHT": {
       "TERMS": "Terms of Use",
