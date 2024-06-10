@@ -1,5 +1,5 @@
 import { isPlatformServer } from '@angular/common';
-import { Component, Inject, Input, OnInit, PLATFORM_ID } from '@angular/core';
+import { Component, Inject, Input, OnChanges, OnInit, PLATFORM_ID, SimpleChanges } from '@angular/core';
 import { Router } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
 
@@ -14,7 +14,7 @@ import { id } from '../../shared/utilities/id.utility';
   templateUrl: './chord-diagram.component.html',
   styleUrls: ['./chord-diagram.component.scss'],
 })
-export class ChordDiagramComponent implements OnInit {
+export class ChordDiagramComponent implements OnChanges {
 
   @Input() dataNetwork: DataNetwork;
 
@@ -46,7 +46,8 @@ export class ChordDiagramComponent implements OnInit {
     this.id = id();
   }
 
-  ngOnInit(): void {
+  ngOnChanges(changes: SimpleChanges): void {
+
     if (isPlatformServer(this.platformId) || this.dataNetwork === undefined) {
       return;
     }
@@ -130,6 +131,8 @@ export class ChordDiagramComponent implements OnInit {
       };
 
       const figure = d3.select(`#${this.id}`);
+
+      figure.select("svg").remove();
 
       const tooltip = figure
         .append('div')
