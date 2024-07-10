@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { Store, select } from '@ngrx/store';
 import { Observable, filter } from 'rxjs';
@@ -18,17 +18,13 @@ import * as fromSdr from '../../core/store/sdr/sdr.actions';
   animations: [fadeIn],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class CoAuthorNetworkComponent implements OnDestroy, OnInit {
+export class CoAuthorNetworkComponent implements OnInit {
 
   public individual: Observable<Individual>;
 
   public dataNetwork: Observable<DataNetwork>;
 
   constructor(private store: Store<AppState>, private route: ActivatedRoute) { }
-
-  ngOnDestroy() {
-    this.store.dispatch(new fromSdr.ClearResourcesAction('individual'));
-  }
 
   ngOnInit() {
     if (this.route.parent && this.route.parent.data) {
@@ -41,7 +37,7 @@ export class CoAuthorNetworkComponent implements OnDestroy, OnInit {
           );
           this.dataNetwork = this.store.pipe(
             select(selectResourcesDataNetwork('individual')),
-            filter((individual: DataNetwork) => individual !== undefined),
+            filter((dataNetwork: DataNetwork) => dataNetwork !== undefined),
           );
           this.store.dispatch(new fromSdr.GetNetworkAction('individual', {
             id,
