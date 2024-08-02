@@ -11,13 +11,13 @@ import { DialogService } from '../../core/service/dialog.service';
 import { AppState } from '../../core/store';
 import { selectResourcesAcademicAge } from '../../core/store/sdr';
 import { AcademicAge } from '../../core/store/sdr/sdr.reducer';
+import { selectActiveThemeVariant } from '../../core/store/theme';
 import { fadeIn } from '../../shared/utilities/animation.utility';
 import { BarplotComponent, BarplotInput } from './barplot/barplot.component';
 
 import * as fromRouter from '../../core/store/router/router.actions';
 import * as fromSdr from '../../core/store/sdr/sdr.actions';
 import * as fromSidebar from '../../core/store/sidebar/sidebar.actions';
-import { selectActiveThemeColor, selectActiveThemeVariant } from 'src/app/core/store/theme';
 
 const academicAgeGroupToBarplotInput = (academicAge: AcademicAge): BarplotInput => {
   return {
@@ -134,7 +134,6 @@ export class AcademicAgeGroupComponent implements OnInit, OnChanges {
     this.primaryThemeColor = this.store.pipe(
       select(selectActiveThemeVariant('--primary'))
     );
-    this.primaryThemeColor.subscribe(console.log);
   }
 
   ngOnChanges(changes: SimpleChanges): void {
