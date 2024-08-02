@@ -17,6 +17,7 @@ import { BarplotComponent, BarplotInput } from './barplot/barplot.component';
 import * as fromRouter from '../../core/store/router/router.actions';
 import * as fromSdr from '../../core/store/sdr/sdr.actions';
 import * as fromSidebar from '../../core/store/sidebar/sidebar.actions';
+import { selectActiveThemeColor, selectActiveThemeVariant } from 'src/app/core/store/theme';
 
 const academicAgeGroupToBarplotInput = (academicAge: AcademicAge): BarplotInput => {
   return {
@@ -74,6 +75,8 @@ export class AcademicAgeGroupComponent implements OnInit, OnChanges {
 
   public averagePubRateAcademicAge: Observable<BarplotInput>;
 
+  public primaryThemeColor: Observable<string>;
+
   private sidebarMenuSections: { [key: string]: { facet: Facet, index: number } };
 
   constructor(
@@ -127,6 +130,11 @@ export class AcademicAgeGroupComponent implements OnInit, OnChanges {
       filter((ra: AcademicAge) => !!ra && (ra.label === rk || ra.label === apk)),
       map(academicAgeGroupToBarplotInput)
     );
+
+    this.primaryThemeColor = this.store.pipe(
+      select(selectActiveThemeVariant('--primary'))
+    );
+    this.primaryThemeColor.subscribe(console.log);
   }
 
   ngOnChanges(changes: SimpleChanges): void {
