@@ -29,8 +29,11 @@ export class BarplotComponent {
   public maxOverride: number;
 
   @Input()
-  public input: Observable<BarplotInput>;
+  public lineColor: string;
 
+  @Input()
+  public input: Observable<BarplotInput>;
+  
   public id: string;
 
   constructor(@Inject(PLATFORM_ID) private platformId: string) {
@@ -111,14 +114,16 @@ export class BarplotComponent {
           .attr('y', (d) => ageGroupScale(d.label))
           .attr('width', (d) => researcherScale(d.value))
           .attr('height', ageGroupScale.bandwidth())
-          .attr('fill', 'steelblue');
+          .attr('fill', 'lightgray')
+          .style("stroke", "gray")
+          .style("stroke-width", "1px");
 
         bar.append('text')
           .attr('x', (d) => researcherScale(d.value) + 5)
           .attr('y', (d) => ageGroupScale(d.label) + (ageGroupScale.bandwidth() / 2))
           .style('font', '11px')
           .style('font-family', '"Lato", Calibri, Arial, sans-serif')
-          .attr('fill', 'steelblue')
+          .attr('fill', 'gray')
           .text((d) => d.value);
 
         svg.append("text")
@@ -136,7 +141,7 @@ export class BarplotComponent {
           .style("text-anchor", "middle")
           .style('font', '11px')
           .style('font-family', '"Lato", Calibri, Arial, sans-serif')
-          .attr('fill', 'steelblue')
+          .attr('fill', 'gray')
           .text(input.label);
 
       } else {
@@ -160,7 +165,7 @@ export class BarplotComponent {
         svg.append('path')
           .datum(data)
           .attr('fill', 'none')
-          .attr('stroke', 'orange')
+          .attr('stroke', this.lineColor)
           .attr('stroke-width', 1.25)
           .attr('d', d3.line()
             .x(function (d, i) {
@@ -183,8 +188,8 @@ export class BarplotComponent {
           .attr('cy', (d) => {
             return ageGroupScale(d.label) + (ageGroupScale.bandwidth() / 2);
           })
-          .attr('fill', 'orange')
-          .attr('stroke', 'orange')
+          .attr('fill', this.lineColor)
+          .attr('stroke', this.lineColor)
           .attr('r', 2);
 
         svg
@@ -197,7 +202,7 @@ export class BarplotComponent {
           .attr('y', (d) => ageGroupScale(d.label))
           .style('font', '11px')
           .style('font-family', '"Lato", Calibri, Arial, sans-serif')
-          .attr('fill', 'orange')
+          .attr('fill', this.lineColor)
           .text((d) => d.value);
 
         svg.append("text")
@@ -206,7 +211,7 @@ export class BarplotComponent {
           .style("text-anchor", "middle")
           .style('font', '11px')
           .style('font-family', '"Lato", Calibri, Arial, sans-serif')
-          .attr('fill', 'orange')
+          .attr('fill', this.lineColor)
           .text(input.label);
 
         subscription.unsubscribe();
