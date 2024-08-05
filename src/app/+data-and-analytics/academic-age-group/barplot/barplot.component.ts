@@ -88,7 +88,7 @@ export class BarplotComponent {
         // bottom axis
         svg.append('g')
           .attr('transform', `translate(5,${height + 15})`)
-          .call(d3.axisBottom(researcherScale).ticks(max / 500).tickSize(0))
+          .call(d3.axisBottom(researcherScale).ticks(this.getTicks(max)).tickSize(0))
           .call(g => g.select('.domain').remove())
           .selectAll('text')
           .style('text-anchor', 'end');
@@ -214,6 +214,16 @@ export class BarplotComponent {
 
       index++;
     });
+  }
+
+  private getTicks = (max: number): number => {
+    let interval = Math.pow(10, max.toString().length - 1);
+
+    if (interval >= 10) {
+      interval /= 2;
+    }
+
+    return max / interval;
   }
 
 }
