@@ -176,11 +176,13 @@ export class AcademicAgeGroupComponent implements OnInit, OnChanges {
         additionalFilters.shift();
       }
 
-      this.barplots.forEach(barplot => barplot.draw());
-
       if (this.organization.id === this.defaultId) {
         this.maxOverride.next(3000);
+      } else {
+        this.maxOverride.next(undefined);
       }
+
+      this.barplots.forEach(barplot => barplot.draw());
 
       if (this.organization.id !== this.defaultId && !!this.organization.name) {
         additionalFilters.push({
