@@ -17,9 +17,6 @@
         <div class="row mt-2">
           <div *ngIf="showLeftScan(displayView)" class="col-md-{{ getLeftScanColSize(displayView) }}" [innerHtml]="displayView.leftScanTemplateFunction(individual) | safeHtml"></div>
           <div *ngIf="showMainContent(displayView)" class="col-md-{{ getMainContentColSize(displayView) }}" [innerHtml]="displayView.mainContentTemplateFunction(individual) | safeHtml"></div>
-          <div *ngIf="showAside(displayView)" class="d-lg-none ml-3 mr-3 w-100">
-            <ng-container *ngTemplateOutlet="aside"></ng-container>
-          </div>
           <div *ngIf="showRightScan(displayView)" class="col-md-{{ getRightScanColSize(displayView) }}" [innerHtml]="displayView.rightScanTemplateFunction(individual) | safeHtml"></div>
         </div>
         <div class="row mt-4 mb-4">
@@ -38,7 +35,6 @@
       </div>
       <ng-template #aside>
         <div [innerHtml]="displayView.asideTemplateFunction(individual) | safeHtml"></div>
-        <scholars-twitter *ngIf="individual.twitter" [id]="individual.twitter"></scholars-twitter>
         <scholars-youtube *ngIf="individual.youtube" [url]="individual.youtube"></scholars-youtube>
       </ng-template>
     </div>

@@ -23,7 +23,6 @@ import { SearchBoxComponent } from './search-box/search-box.component';
 import { SidebarComponent } from './sidebar/sidebar.component';
 import { StatsBoxComponent } from './stats-box/stats-box.component';
 import { SustainableDevelopmentGoalsComponent } from './sustainable-development-goals/sustainable-development-goals.component';
-import { TwitterComponent } from './twitter/twitter.component';
 import { FormalizePipe } from './utilities/formalize.pipe';
 import { SafeHtmlPipe } from './utilities/safe-html.pipe';
 import { SafeUrlPipe } from './utilities/safe-url.pipe';
@@ -61,7 +60,6 @@ const COMPONENTS = [
   SidebarComponent,
   StatsBoxComponent,
   SustainableDevelopmentGoalsComponent,
-  TwitterComponent,
   YouTubeComponent
 ];
 
