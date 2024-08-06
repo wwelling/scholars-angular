@@ -97,10 +97,9 @@ export class DataAndAnalyticsComponent implements OnInit {
       filter((organization: Individual) => !!organization),
     );
 
+    // TODO: add filter select options to the data and analytic persistent view
     this.colleges = this.getOrganizationsByTypes(['College']);
-
     this.departments = this.getOrganizationsByTypes(['AcademicDepartment']);
-
     this.others = this.getOrganizationsByTypes(['AdministrativeUnit', 'AffiliatedAgency', 'Association', 'BranchCampus', 'Center', 'Hospital', 'Institute', 'Laboratory', 'Library', 'Program', 'School', 'University']);
 
     this.themeOrganizationId = this.store.pipe(
