@@ -33,7 +33,7 @@ export class BarplotComponent {
 
   @Input()
   public input: Observable<BarplotInput>;
-  
+
   public id: string;
 
   constructor(@Inject(PLATFORM_ID) private platformId: string) {
@@ -62,41 +62,12 @@ export class BarplotComponent {
 
     let index = 0;
 
-    console.log("maxOverride");
-      console.log(this.maxOverride);
-
     const subscription = this.input.subscribe((input: BarplotInput) => {
 
-
-      input.data.forEach(element => {
-        
-        console.log(element);
-      });
-      
       const data = [...input.data].reverse();
-
-      const lowestData = data[data.length-1].value;
-
-      console.log("lowestData");
-      console.log(lowestData);
-
-      const highestData = data[0].value;
-      console.log("highestData");
-      console.log(highestData);
-
-      this.maxOverride = highestData;
-
 
       if (index === 0) {
         const max = !!this.maxOverride ? this.maxOverride : d3.max(data.map((d: any) => d.value));
-        const min = highestData;
-        console.log("value of max ");
-        console.log(max);
-
-        let denominator = max >= 200 ? 100 :
-        max < 10 ? 2 :
-        max < 100 ? 10 :
-        10; 
 
         // append the svg object to the body of the page
         svg = d3.select(`#${this.id}`)
@@ -120,7 +91,7 @@ export class BarplotComponent {
         // bottom axis
         svg.append('g')
           .attr('transform', `translate(5,${height + 15})`)
-          .call(d3.axisBottom(researcherScale).ticks(max/denominator).tickSize(0))
+          .call(d3.axisBottom(researcherScale).ticks(this.getTicks(max)).tickSize(0))
           .call(g => g.select('.domain').remove())
           .selectAll('text')
           .style('text-anchor', 'end');
@@ -248,6 +219,16 @@ export class BarplotComponent {
 
       index++;
     });
+  }
+
+  private getTicks = (max: number): number => {
+    let interval = Math.pow(10, max.toString().length - 1);
+
+    if (interval >= 10) {
+      interval /= 2;
+    }
+
+    return max / interval;
   }
 
 }
