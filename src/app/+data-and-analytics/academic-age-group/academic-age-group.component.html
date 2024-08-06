@@ -13,7 +13,7 @@
       <div class="card shadow bg-white rounded m-1">
         <div class="card-body">
           <div class="h5">{{ 'DATA_AND_ANALYTICS.ACADEMIC_AGE_GROUP.PUBLICATIONS' | translate }}</div>
-          <scholars-barplot id="academicAgeBarplot" scale="1" [input]="academicAge" maxOverride="{{maxOverride | async}}"></scholars-barplot>
+          <scholars-barplot id="academicAgeBarplot" scale="1" [input]="academicAge" lineColor="{{primaryThemeColor | async}}" maxOverride="{{maxOverride | async}}"></scholars-barplot>
         </div>
       </div>
     </div>
@@ -29,7 +29,16 @@
       <div class="card shadow bg-white rounded m-1">
         <div class="card-body">
           <div class="h5">{{ 'DATA_AND_ANALYTICS.ACADEMIC_AGE_GROUP.AVERAGE_PUBLICATIONS' | translate }}</div>
-          <scholars-barplot id="averagePubRateAcademicAgeBarplot" scale="1" [input]="averagePubRateAcademicAge" maxOverride="{{maxOverride | async}}"></scholars-barplot>
+          <scholars-barplot id="averagePubRateAcademicAgeBarplot" scale="1" [input]="averagePubRateAcademicAge" lineColor="{{primaryThemeColor | async}}" maxOverride="{{maxOverride | async}}"></scholars-barplot>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="row">
+    <div class="card shadow bg-white rounded m-1">
+      <div class="card-body">
+        <div class="card-text">
+          <p class="text-left">{{ 'DATA_AND_ANALYTICS.ACADEMIC_AGE_GROUP.DESCRIPTION' | translate }}</p>
         </div>
       </div>
     </div>
