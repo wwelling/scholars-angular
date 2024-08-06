@@ -3,7 +3,7 @@ import { Actions, createEffect, ofType, OnInitEffects } from '@ngrx/effects';
 import { Action, Store } from '@ngrx/store';
 import { StompSubscription } from '@stomp/stompjs';
 import { asapScheduler, Observable, scheduled } from 'rxjs';
-import { catchError, map, mergeMap, skipWhile, switchMap, withLatestFrom } from 'rxjs/operators';
+import { catchError, filter, map, mergeMap, skipWhile, switchMap, withLatestFrom } from 'rxjs/operators';
 
 import { AppState } from '../';
 import { AlertService } from '../../service/alert.service';
@@ -92,7 +92,7 @@ export class StompEffects implements OnInitEffects {
     ofType(fromStomp.StompActionTypes.UNSUBSCRIBE),
     map((action: fromStomp.UnsubscribeAction) => action),
     withLatestFrom(this.store),
-    skipWhile(([action, store]) => !store.stomp.subscriptions.get(action.payload.channel)),
+    filter(([action, store]) => !!store.stomp.subscriptions.get(action.payload.channel)),
     switchMap(([action, store]) =>
       scheduled([store.stomp.subscriptions.get(action.payload.channel).unsubscribe()], asapScheduler).pipe(
         map(
