@@ -3,8 +3,8 @@ import { Params } from '@angular/router';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { Store, select } from '@ngrx/store';
 import { TranslateService } from '@ngx-translate/core';
-import { Observable, asapScheduler, combineLatest, defer, scheduled } from 'rxjs';
-import { catchError, filter, map, mergeMap, skipWhile, switchMap, take, withLatestFrom } from 'rxjs/operators';
+import { Observable, asapScheduler, combineLatest, defer, of, scheduled } from 'rxjs';
+import { catchError, filter, map, mergeMap, skip, skipWhile, switchMap, take, withLatestFrom } from 'rxjs/operators';
 
 import { AppState } from '../';
 import { FILTER_VALUE_DELIMITER, buildDateYearFilterValue, buildNumberRangeFilterValue, createSdrRequest, getFacetFilterLabel } from '../../../shared/utilities/discovery.utility';
@@ -22,7 +22,7 @@ import { selectRouterState } from '../router';
 import { CustomRouterState } from '../router/router.reducer';
 import { selectIsStompConnected, selectStompState } from '../stomp';
 import { StompState } from '../stomp/stomp.reducer';
-import { selectSdrState } from './';
+import { selectResourceById, selectSdrState } from './';
 import { AcademicAge, DataNetwork, QuantityDistribution, SdrState } from './sdr.reducer';
 
 import * as fromDialog from '../dialog/dialog.actions';
@@ -90,6 +90,23 @@ export class SdrEffects {
     map((action: fromSdr.GetAllResourcesFailureAction) => this.alert.getAllFailureAlert(action.payload))
   ));
 
+  getSelected = createEffect(() => this.actions.pipe(
+    ofType(...this.buildActions(fromSdr.SdrActionTypes.SELECT_RESOURCE)),
+    switchMap((action: fromSdr.SelectResourceAction) => {
+      return this.store.pipe(
+        select(selectResourceById(action.name, action.payload.id)),
+        take(1),
+        switchMap((individual: SdrResource | undefined) => {
+          if (individual) {
+            return of(new fromSdr.SelectResourceSuccessAction(action.name, { individual, select: true, queue: action.payload.queue }));
+          } else {
+            return of(new fromSdr.GetOneResourceAction('individual', { id: action.payload.id, select: true, queue: action.payload.queue }));
+          }
+        })
+      );
+    })
+  ));
+
   getOne = createEffect(() => this.actions.pipe(
     ofType(...this.buildActions(fromSdr.SdrActionTypes.GET_ONE)),
     switchMap((action: fromSdr.GetOneResourceAction) =>
@@ -97,7 +114,7 @@ export class SdrEffects {
         .get(action.name)
         .getOne(action.payload.id)
         .pipe(
-          map((individual: Individual) => new fromSdr.GetOneResourceSuccessAction(action.name, { individual, queue: action.payload.queue })),
+          map((individual: Individual) => new fromSdr.GetOneResourceSuccessAction(action.name, { individual, select: action.payload.select, queue: action.payload.queue })),
           catchError((response) =>
             scheduled(
               [
@@ -115,6 +132,9 @@ export class SdrEffects {
   getOneSuccess = createEffect(() => this.actions.pipe(
     ofType(...this.buildActions(fromSdr.SdrActionTypes.GET_ONE_SUCCESS)),
     switchMap((action: fromSdr.GetOneResourceSuccessAction) => {
+      if (action.payload.select) {
+        this.store.dispatch(new fromSdr.SelectResourceSuccessAction(action.name, { individual: action.payload.individual }));
+      }
       if (!!action.payload.queue && action.payload.queue.length > 0) {
         this.store.dispatch(action.payload.queue.pop());
       }

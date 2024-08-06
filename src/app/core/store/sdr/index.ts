@@ -13,6 +13,7 @@ export const selectAllResources = <R extends SdrResource>(name: string) => creat
 export const selectResourcesTotal = <R extends SdrResource>(name: string) => createSelector(selectSdrState<R>(name), fromSdr.selectTotal(name));
 
 export const selectResourceError = <R extends SdrResource>(name: string) => createSelector(selectSdrState<R>(name), fromSdr.getError);
+export const selectResourceIsSelecting = <R extends SdrResource>(name: string) => createSelector(selectSdrState<R>(name), fromSdr.isSelecting);
 export const selectResourceIsCounting = <R extends SdrResource>(name: string) => createSelector(selectSdrState<R>(name), fromSdr.isCounting);
 export const selectResourceIsLoading = <R extends SdrResource>(name: string) => createSelector(selectSdrState<R>(name), fromSdr.isLoading);
 export const selectResourceIsDereferencing = <R extends SdrResource>(name: string) => createSelector(selectSdrState<R>(name), fromSdr.isDereferencing);
@@ -20,6 +21,7 @@ export const selectResourceIsUpdating = <R extends SdrResource>(name: string) =>
 
 export const selectResourcesCounts = <R extends SdrResource>(name: string) => createSelector(selectSdrState<R>(name), fromSdr.getCounts);
 export const selectResourcesCountByLabel = <R extends SdrResource>(name: string, label: string) => createSelector(selectSdrState<R>(name), fromSdr.getCountByLabel(label));
+export const selectResourceSelected = <R extends SdrResource>(name: string) => createSelector(selectSdrState<R>(name), fromSdr.getSelected);
 export const selectResourcesPage = <R extends SdrResource>(name: string) => createSelector(selectSdrState<R>(name), fromSdr.getPage);
 export const selectResourcesFacets = <R extends SdrResource>(name: string) => createSelector(selectSdrState<R>(name), fromSdr.getFacets);
 export const selectResourcesLinks = <R extends SdrResource>(name: string) => createSelector(selectSdrState<R>(name), fromSdr.getLinks);
@@ -28,7 +30,7 @@ export const selectResourcesDataNetwork = <R extends SdrResource>(name: string) 
 export const selectResourcesAcademicAge = <R extends SdrResource>(name: string) => createSelector(selectSdrState<R>(name), fromSdr.getAcademicAge);
 export const selectResourcesQuantityDistribution = <R extends SdrResource>(name: string) => createSelector(selectSdrState<R>(name), fromSdr.getQuantityDistribution);
 
-export const selectResourceById = <R extends SdrResource>(name: string, id: string) => createSelector(selectResourceEntities<R>(name), (resources) => resources[id]);
+export const selectResourceById = <R extends SdrResource>(name: string, id: string | number) => createSelector(selectResourceEntities<R>(name), (resources) => resources[id]);
 
 export const selectCollectionViewByName = (collectionViewType: string, name: string) => createSelector(selectResourceEntities<CollectionView>(collectionViewType), (collectionViews) => collectionViews[name]);
 

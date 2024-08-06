@@ -60,6 +60,9 @@
     "OTHERS": "Centers, Institutes, & Others",
     "SELECT": "- Select -",
     "DOWNLOAD": "Download",
+    "UNKNOWN": "{{value}} Unknown",
+    "NOT_SUPPORTED": "{{value}} Not Supported",
+    "RESET": "Reset Filter",
     "ACADEMIC_AGE_GROUP": {
       "MEAN": "Average academic age of affiliated researchers 🛈",
       "PUBLICATIONS": "Researchers and publications per academic age group",

@@ -1,14 +1,15 @@
-import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { ActivatedRoute, Params, Router } from '@angular/router';
 import { Store, select } from '@ngrx/store';
-import { BehaviorSubject, Observable, filter, map, take, tap, withLatestFrom } from 'rxjs';
+import { BehaviorSubject, Observable, combineLatest, filter, map, switchMap, take, withLatestFrom } from 'rxjs';
 
 import { Individual } from '../core/model/discovery';
-import { DataAndAnalyticsView, DisplayView, Filter } from '../core/model/view';
+import { IndividualRepo } from '../core/model/discovery/repo/individual.repo';
+import { DataAndAnalyticsView, DisplayView, Filter, OpKey } from '../core/model/view';
 import { ContainerType } from '../core/model/view/data-and-analytics-view';
 import { AppState } from '../core/store';
 import { selectRouterQueryParamFilters, selectRouterQueryParams, selectRouterState } from '../core/store/router';
-import { selectAllResources, selectDisplayViewByTypes, selectResourceById } from '../core/store/sdr';
+import { selectAllResources, selectDisplayViewByTypes, selectResourceSelected } from '../core/store/sdr';
 import { selectActiveThemeOrganizationId } from '../core/store/theme';
 import { fadeIn } from '../shared/utilities/animation.utility';
 import { getFilterField, getFilterValue, getQueryParamsForFacets, removeFilterFromQueryParams, resetFiltersInQueryParams, showClearFilters, showFilter } from '../shared/utilities/view.utility';
@@ -26,6 +27,10 @@ import * as fromSidebar from '../core/store/sidebar/sidebar.actions';
 })
 export class DataAndAnalyticsComponent implements OnInit {
 
+  @ViewChild('collegesSelect') collegesSelect: ElementRef<HTMLSelectElement>;
+  @ViewChild('departmentsSelect') departmentsSelect: ElementRef<HTMLSelectElement>;
+  @ViewChild('othersSelect') othersSelect: ElementRef<HTMLSelectElement>;
+
   public displayView: Observable<DisplayView>;
 
   public dataAndAnalyticsView: Observable<DataAndAnalyticsView>;
@@ -42,34 +47,15 @@ export class DataAndAnalyticsComponent implements OnInit {
 
   public filters: Observable<any[]>;
 
-  public organizations: Observable<Individual[]>;
-
-  public selectedOrganizationSubject: BehaviorSubject<Individual>;
+  public selectedOrganization: Observable<Individual>;
 
   public labelSubject: BehaviorSubject<string>;
 
-  public get colleges(): Observable<any[]> {
-    return this.selectedOrganization.pipe(
-      map((org: Individual) => this.filterSubOrganization(org, ['College']))
-    );
-  };
+  public colleges: Observable<Individual[]>;
 
-  public get departments(): Observable<any[]> {
-    return this.selectedOrganization.pipe(
-      map((org: Individual) => this.filterSubOrganization(org, ['AcademicDepartment']))
-    );
-  };
+  public departments: Observable<Individual[]>;
 
-  public get others(): Observable<any[]> {
-    return this.selectedOrganization.pipe(
-      map((org: Individual) => this.filterSubOrganization(org, ['!College', '!AcademicDepartment']))
-    );
-  };
-
-  public get selectedOrganization(): Observable<Individual> {
-    return this.selectedOrganizationSubject.asObservable()
-      .pipe(filter((org: Individual) => !!org));
-  }
+  public others: Observable<Individual[]>;
 
   public get label(): Observable<string> {
     return this.labelSubject.asObservable();
@@ -78,15 +64,16 @@ export class DataAndAnalyticsComponent implements OnInit {
   constructor(
     private router: Router,
     private route: ActivatedRoute,
-    private store: Store<AppState>
+    private store: Store<AppState>,
+    private individualRepo: IndividualRepo,
   ) {
-    this.selectedOrganizationSubject = new BehaviorSubject<Individual>(undefined);
     this.labelSubject = new BehaviorSubject<string>('');
   }
 
   ngOnInit(): void {
     this.store.dispatch(new fromSidebar.UnloadSidebarAction());
     this.store.dispatch(new fromLayout.CloseSidebarAction());
+
     this.store.dispatch(new fromSdr.ClearResourcesAction('individual'));
 
     this.queryParams = this.store.pipe(select(selectRouterQueryParams));
@@ -105,51 +92,44 @@ export class DataAndAnalyticsComponent implements OnInit {
       map((router: any) => !!router && router.state.url === '/data-and-analytics')
     );
 
-    this.organizations = this.store.pipe(
-      select(selectAllResources('individual')),
-      tap((organizations: Individual[]) => {
-        this.selectedOrganizationSubject.next(organizations[organizations.length - 1]);
-      })
+    this.selectedOrganization = this.store.pipe(
+      select(selectResourceSelected('individual')),
+      filter((organization: Individual) => !!organization),
     );
 
-    this.themeOrganizationId = this.store.select(selectActiveThemeOrganizationId);
+    // TODO: add filter select options to the data and analytic persistent view
+    this.colleges = this.getOrganizationsByTypes(['College']);
+    this.departments = this.getOrganizationsByTypes(['AcademicDepartment']);
+    this.others = this.getOrganizationsByTypes(['AdministrativeUnit', 'AffiliatedAgency', 'Association', 'BranchCampus', 'Center', 'Hospital', 'Institute', 'Laboratory', 'Library', 'Program', 'School', 'University']);
 
-    this.themeOrganizationId
-      .pipe(
-        filter(id => !!id),
-        take(1)
-    ).subscribe(id => {
+    this.themeOrganizationId = this.store.pipe(
+      select(selectActiveThemeOrganizationId),
+      filter(id => !!id),
+      take(1)
+    );
 
-      this.organization = this.store.pipe(
-        select(selectResourceById('individual', id)),
-        filter((organization: Individual) => !!organization)
-      );
+    combineLatest([this.queryParams.pipe(take(1)), this.themeOrganizationId])
+      .pipe(take(1))
+      .subscribe(([querParams, themeOrganizationId]) => {
+        const id = querParams.selectedOrganization ? querParams.selectedOrganization : themeOrganizationId;
 
-      this.organization.pipe(take(1))
-        .subscribe((organization) => {
+        this.store.pipe(
+          select(selectResourceSelected('individual')),
+          filter((organization: Individual) => !!organization),
+          take(1),
+        ).subscribe((organization) => {
           this.displayView = this.store.pipe(
             select(selectDisplayViewByTypes(organization.type)),
             filter((displayView: DisplayView) => !!displayView)
           );
-
           this.store.dispatch(
             new fromSdr.FindByTypesInResourceAction('displayViews', {
               types: organization.type,
             })
           );
-
-          this.queryParams.pipe(take(1)).subscribe((params: Params) => {
-            if (!!params.selectedOrganizations) {
-              const ids = params.selectedOrganizations.split(',');
-              const id = ids.shift();
-              const queue = ids.map((id: string) => new fromSdr.GetOneResourceAction('individual', { id }));
-              this.store.dispatch(new fromSdr.GetOneResourceAction('individual', { id, queue }));
-            }
-          });
         });
 
-        this.store.dispatch(new fromSdr.GetOneResourceAction('individual', { id }));
-
+        this.store.dispatch(new fromSdr.SelectResourceAction('individual', { id }));
       });
   }
 
@@ -158,13 +138,13 @@ export class DataAndAnalyticsComponent implements OnInit {
   }
 
   public getDataAndAnalyticsQueryParamsRemovingFilter(params: Params, filterToRemove: Filter): Params {
-    const queryParams: Params = Object.assign({}, params);
+    const queryParams: Params = { ...params };
     removeFilterFromQueryParams(queryParams, filterToRemove);
     return queryParams;
   }
 
   public getDataAndAnalyticsQueryParamsClearingFilters(params: Params, view: DataAndAnalyticsView): Params {
-    const queryParams: Params = Object.assign({}, params);
+    const queryParams: Params = { ...params };
     resetFiltersInQueryParams(queryParams, view);
     return queryParams;
   }
@@ -189,43 +169,30 @@ export class DataAndAnalyticsComponent implements OnInit {
     return index;
   }
 
-  public onNavigateOrganization(params: Params, organizations: Individual[], index: number): void {
-    const selectedOrganizations: string[] = !!params.selectedOrganizations
-      ? params.selectedOrganizations.split(',')
-      : [];
+  public onSelectOrganization(id: any, params: Params, changedSelect?: any): void {
 
-    let org;
-    while (!!(org = organizations[++index])) {
-      const id = org.id;
-      this.store.dispatch(new fromSdr.ClearResourceByIdAction('individual', { id }));
-      let i;
-      if ((i = selectedOrganizations.indexOf(id)) >= 0) {
-        selectedOrganizations.splice(i, 1);
-      }
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { ...params, selectedOrganization: id },
+      queryParamsHandling: 'merge'
+    });
+
+    if (this.collegesSelect && this.collegesSelect.nativeElement.id !== changedSelect?.id) {
+      this.collegesSelect.nativeElement.value = '';
     }
 
-    this.router.navigate([], {
-      relativeTo: this.route,
-      queryParams: { ...params, selectedOrganizations: selectedOrganizations.join(',') },
-      queryParamsHandling: 'merge'
-    });
+    if (this.departmentsSelect && this.departmentsSelect.nativeElement.id !== changedSelect?.id) {
+      this.departmentsSelect.nativeElement.value = '';
+    }
+
+    if (this.othersSelect && this.othersSelect.nativeElement.id !== changedSelect?.id) {
+      this.othersSelect.nativeElement.value = '';
+    }
+
+    this.store.dispatch(new fromSdr.SelectResourceAction('individual', { id }));
   }
 
-  public onSelectOrganization(id: any, params: Params): void {
-    const selectedOrganizations = !!params.selectedOrganizations
-      ? `${params.selectedOrganizations},${id}`
-      : id;
-
-    this.router.navigate([], {
-      relativeTo: this.route,
-      queryParams: { ...params, selectedOrganizations },
-      queryParamsHandling: 'merge'
-    });
-
-    this.store.dispatch(new fromSdr.GetOneResourceAction('individual', { id }));
-  }
-
-  public getQueryParams(params: Params, view: DataAndAnalyticsView, displayView: DisplayView): Params {
+  public getQueryParams(params: Params, view: DataAndAnalyticsView, displayView: DisplayView, orgId?: string | number): Params {
     const queryParams: Params = {
       ...params,
       ...getQueryParamsForFacets(view),
@@ -242,6 +209,10 @@ export class DataAndAnalyticsComponent implements OnInit {
       default: break;
     }
 
+    if (orgId) {
+      queryParams.selectedOrganization = orgId;
+    }
+
     return queryParams;
   }
 
@@ -249,23 +220,25 @@ export class DataAndAnalyticsComponent implements OnInit {
     this.labelSubject.next(label);
   }
 
-  private filterSubOrganization(organization: any, types: string[]): any[] {
-    const subOrganizations = !!organization.hasSubOrganizations
-      ? organization.hasSubOrganizations
-      : [];
+  private getOrganizationsByTypes(types: string[]): Observable<Individual[]> {
+    const filters = [{
+      field: 'type',
+      value: `(${types.join(' OR ')})`,
+      opKey: OpKey.EXPRESSION
+    }, {
+      field: 'class',
+      value: 'Organization',
+      opKey: OpKey.EQUALS
+    }];
 
-    return subOrganizations.filter(so => {
-      for (const type of types) {
-        const match = type.startsWith('!')
-          ? so.type !== type.substring(1)
-          : so.type === type;
-        if (!match) {
-          return false;
-        }
-      }
+    const page = {
+      number: 0,
+      size: 9999,
+      sort: [],
+    }
 
-      return true;
-    });
+    return this.individualRepo.search({ filters, page })
+      .pipe(map((collection) => collection._embedded.individual as Individual[]));
   }
 
 }

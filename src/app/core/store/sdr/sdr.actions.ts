@@ -5,6 +5,9 @@ import { Queryable } from '../../model/request/sdr.request';
 import { Count, SdrCollection } from '../../model/sdr';
 
 export enum SdrActionTypes {
+  SELECT_RESOURCE = 'select a resource',
+  SELECT_RESOURCE_SUCCESS = 'successfully selected a resource',
+  SELECT_RESOURCE_FAILURE = 'failed selected a resource',
   GET_ALL = 'get all resources',
   GET_ALL_SUCCESS = 'sucessfully got all resources',
   GET_ALL_FAILURE = 'failed getting all resources',
@@ -61,6 +64,24 @@ export enum SdrActionTypes {
 export const getSdrAction = (actionType: SdrActionTypes, name: string): string => {
   return `[${name}] ${actionType}`;
 };
+
+export class SelectResourceAction implements Action {
+  readonly type = getSdrAction(SdrActionTypes.SELECT_RESOURCE, this.name);
+  constructor(public name: string, public payload: {
+    id: number | string,
+    queue?: Array<GetOneResourceAction>,
+  }) { }
+}
+
+export class SelectResourceSuccessAction implements Action {
+  readonly type = getSdrAction(SdrActionTypes.SELECT_RESOURCE_SUCCESS, this.name);
+  constructor(public name: string, public payload: any) { }
+}
+
+export class SelectResourceFailureAction implements Action {
+  readonly type = getSdrAction(SdrActionTypes.SELECT_RESOURCE_FAILURE, this.name);
+  constructor(public name: string, public payload: any) { }
+}
 
 export class GetAllResourcesAction implements Action {
   readonly type = getSdrAction(SdrActionTypes.GET_ALL, this.name);
@@ -141,6 +162,7 @@ export class GetOneResourceAction implements Action {
   readonly type = getSdrAction(SdrActionTypes.GET_ONE, this.name);
   constructor(public name: string, public payload: {
     id: number | string,
+    select?: boolean,
     queue?: Array<GetOneResourceAction>,
   }) { }
 }
@@ -342,6 +364,9 @@ export class ClearResourceByIdAction implements Action {
 }
 
 export type SdrActions =
+  SelectResourceAction |
+  SelectResourceSuccessAction |
+  SelectResourceFailureAction |
   GetAllResourcesAction |
   GetAllResourcesSuccessAction |
   GetAllResourcesFailureAction |
