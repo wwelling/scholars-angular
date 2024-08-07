@@ -1,5 +1,5 @@
 import { isPlatformServer } from '@angular/common';
-import { Component, Inject, Input, PLATFORM_ID } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Inject, Input, PLATFORM_ID } from '@angular/core';
 
 import * as d3 from 'd3';
 
@@ -15,7 +15,8 @@ export interface BarplotInput {
 @Component({
   selector: 'scholars-barplot',
   templateUrl: './barplot.component.html',
-  styleUrls: ['./barplot.component.scss']
+  styleUrls: ['./barplot.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class BarplotComponent {
 
@@ -67,7 +68,7 @@ export class BarplotComponent {
       const data = [...input.data].reverse();
 
       if (index === 0) {
-        const max = !!this.maxOverride ? this.maxOverride : d3.max(data.map((d: any) => d.value));
+        const max = this.maxOverride ? this.maxOverride : d3.max(data.map((d: any) => d.value));
 
         // append the svg object to the body of the page
         svg = d3.select(`#${this.id}`)

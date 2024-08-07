@@ -1,5 +1,5 @@
 import { isPlatformServer } from '@angular/common';
-import { Component, EventEmitter, Inject, Input, OnChanges, OnInit, Output, PLATFORM_ID, QueryList, SimpleChanges, ViewChildren } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, Inject, Input, OnChanges, OnInit, Output, PLATFORM_ID, QueryList, SimpleChanges, ViewChildren } from '@angular/core';
 import { Store, select } from '@ngrx/store';
 import { Observable, Subject, filter, map, tap } from 'rxjs';
 
@@ -35,6 +35,7 @@ const apk = 'Average publications';
   templateUrl: './academic-age-group.component.html',
   styleUrls: ['./academic-age-group.component.scss'],
   animations: [fadeIn],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AcademicAgeGroupComponent implements OnInit, OnChanges {
 
@@ -65,7 +66,8 @@ export class AcademicAgeGroupComponent implements OnInit, OnChanges {
   @ViewChildren(BarplotComponent)
   private barplots: QueryList<BarplotComponent>;
 
-  public maxOverride: Subject<number>;
+  // TODO: get from dataAndAnalyticsView
+  // public maxOverride: Subject<number>;
 
   public mean: Subject<number>;
 
@@ -85,7 +87,7 @@ export class AcademicAgeGroupComponent implements OnInit, OnChanges {
     private dialog: DialogService,
   ) {
     this.labelEvent = new EventEmitter<string>();
-    this.maxOverride = new Subject<number>();
+    // this.maxOverride = new Subject<number>();
     this.mean = new Subject<number>();
     this.median = new Subject<number>();
     this.sidebarMenuSections = {};
@@ -144,59 +146,61 @@ export class AcademicAgeGroupComponent implements OnInit, OnChanges {
     setTimeout(() => {
       const additionalFilters = [];
 
-      if (!!filters) {
-        if (!!filters.previousValue) {
-          filters.previousValue.forEach((entry: any) => {
-            if (filters.currentValue.indexOf(entry) === -1) {
-              const section = this.sidebarMenuSections[entry.field];
-              if (!!section) {
+      if (filters) {
+        if (filters.previousValue) {
+          filters.previousValue.forEach((previousValue: any) => {
+            if (filters.currentValue.indexOf(previousValue) === -1) {
+              const section = this.sidebarMenuSections[previousValue.field];
+              if (section) {
                 this.store.dispatch(new fromSidebar.RemoveSectionAction({
                   sectionIndex: section.index,
-                  itemLabel: entry.value,
-                  itemField: entry.field,
+                  itemLabel: previousValue.value,
+                  itemField: previousValue.field,
                 }));
               }
             }
           });
         }
 
-        filters.currentValue.forEach((entry: any) => {
-          if (filters.previousValue === undefined || filters.previousValue.indexOf(entry) === -1) {
-            const section = this.sidebarMenuSections[entry.field];
-            if (!!section) {
-              const remove = {};
-              remove[entry.field]
+        filters.currentValue.forEach((currentFilter: any) => {
+          if (filters.previousValue === undefined || filters.previousValue.indexOf(currentFilter) === -1) {
+            const section = this.sidebarMenuSections[currentFilter.field];
+            if (section) {
               this.store.dispatch(new fromSidebar.AddSectionItemAction({
                 sectionIndex: section.index,
                 sectionItem: {
                   type: SidebarItemType.ACTION,
-                  label: entry.value,
+                  label: currentFilter.value,
                   selected: true,
-                  action: new fromRouter.RemoveFilter({ filter: entry }),
+                  action: new fromRouter.RemoveFilter({ filter: currentFilter }),
                 }
               }));
             }
           }
+          additionalFilters.push(currentFilter);
         });
 
-        additionalFilters.push(filters.currentValue);
-        additionalFilters.shift();
       }
 
-      if (this.organization.id === this.defaultId) {
-        this.maxOverride.next(3000);
-      } else {
-        this.maxOverride.next(undefined);
-      }
+      // if (this.organization.id === this.defaultId) {
+      //   this.maxOverride.next(3000);
+      // } else {
+      //   this.maxOverride.next(undefined);
+      // }
 
       this.barplots.forEach(barplot => barplot.draw());
 
       if (this.organization.id !== this.defaultId && !!this.organization.name) {
-        additionalFilters.push({
+
+        const actualFilter = {
           field: 'organizations',
           value: this.organization.name,
           opKey: OpKey.EQUALS
-        });
+        };
+
+        if (additionalFilters.indexOf(actualFilter) === -1) {
+          additionalFilters.push(actualFilter);
+        }
       }
 
       this.store.dispatch(
