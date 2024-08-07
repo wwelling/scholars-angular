@@ -87,7 +87,7 @@
               <div class="row p-1">
                 <div class="col-4" *ngIf="colleges | async; let colleges">
                   <div class="form-group">
-                    <label class="font-weight-bold">{{ 'DATA_AND_ANALYTICS.COLLEGE' | translate }}</label>
+                    <label class="font-weight-bold">{{ 'DATA_AND_ANALYTICS.COLLEGES_AND_SCHOOLS' | translate }}</label>
                     <select #collegesSelect id="collegesSelect" class="form-control" ngModel (ngModelChange)="onSelectOrganization($event, params, collegesSelect)">
                       <option value="" disabled selected>{{ 'DATA_AND_ANALYTICS.SELECT' | translate }}</option>
                       <option *ngFor="let so of colleges" [ngValue]="so.id">{{ so.name }}</option>
@@ -96,7 +96,7 @@
                 </div>
                 <div class="col-4" *ngIf="departments | async; let departments">
                   <div class="form-group">
-                    <label class="font-weight-bold">{{ 'DATA_AND_ANALYTICS.DEPARTMENT' | translate }}</label>
+                    <label class="font-weight-bold">{{ 'DATA_AND_ANALYTICS.DEPARTMENTS' | translate }}</label>
                     <select #departmentsSelect id="departmentsSelect" class="form-control" ngModel (ngModelChange)="onSelectOrganization($event, params, departmentsSelect)">
                       <option value="" disabled selected>{{ 'DATA_AND_ANALYTICS.SELECT' | translate }}</option>
                       <option *ngFor="let so of departments" [ngValue]="so.id">{{ so.name }}</option>
