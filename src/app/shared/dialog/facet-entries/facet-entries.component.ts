@@ -131,7 +131,16 @@ export class FacetEntriesComponent implements OnDestroy, OnInit {
             type: DialogButtonType.OUTLINE_WARNING,
             label: this.translate.get('SHARED.DIALOG.FACET_ENTRIES.CANCEL'),
             action: () => {
-              this.store.dispatch(new fromDialog.CloseDialogAction());
+              this.subscriptions.push(
+                this.form.controls.filter.valueChanges.pipe(
+                  distinctUntilChanged()
+                ).subscribe(() => {
+                  setTimeout(() => {
+                    this.store.dispatch(new fromDialog.CloseDialogAction());
+                  }, 500);
+                })
+              );
+              this.form.controls.filter.setValue('');
             },
             disabled: () => scheduled([false], queueScheduler),
           },
@@ -142,7 +151,7 @@ export class FacetEntriesComponent implements OnDestroy, OnInit {
           ? 'directoryViews'
           : routerState.url.startsWith('/discovery')
             ? 'discoveryViews'
-            : 'dataAndAnalyticsViews'
+            : 'dataAndAnalyticsViews';
 
         this.collectionView = this.store.pipe(select(selectCollectionViewByName(collectionViewType, routerState.params.view)));
 
