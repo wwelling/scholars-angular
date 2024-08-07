@@ -184,7 +184,7 @@ export class AcademicAgeGroupComponent implements OnInit, OnChanges {
 
       if (this.organization.id !== this.defaultId && !!this.organization.name) {
         additionalFilters.push({
-          field: 'positionOrganization',
+          field: 'organizations',
           value: this.organization.name,
           opKey: OpKey.EQUALS
         });
