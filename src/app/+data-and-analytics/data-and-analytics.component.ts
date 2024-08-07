@@ -99,7 +99,7 @@ export class DataAndAnalyticsComponent implements OnInit {
 
     // TODO: add filter select options to the data and analytic persistent view
     // Academic Department (175)
-    // Administrative Unit (10)
+    // Administrative Unit (10) *
     // Affiliated Agency (8)
     // Association (2)
     // Branch Campus (2)
@@ -109,12 +109,13 @@ export class DataAndAnalyticsComponent implements OnInit {
     // Institute (27)
     // Laboratory (7)
     // Library (1)
-    // Organization (1394)
+    // Organization (1394) *
     // Program (4)
-    // Publisher (4724)
+    // Publisher (4724) *
     // School (13)
     // University (11)
-    // External Organization (1453)
+    // External Organization (1453) *
+    // * should not be in any select options
     this.colleges = this.getOrganizationsByTypes([
       'College',
       'School',
@@ -123,7 +124,6 @@ export class DataAndAnalyticsComponent implements OnInit {
       'AcademicDepartment'
     ]);
     this.others = this.getOrganizationsByTypes([
-      'AdministrativeUnit',
       'AffiliatedAgency',
       'Association',
       'BranchCampus',
