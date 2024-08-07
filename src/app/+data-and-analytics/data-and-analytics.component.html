@@ -1,29 +1,19 @@
 <scholars-sidebar *ngIf="queryParams | async; let params">
-  <!-- view navigation -->
-  <nav aria-label="breadcrumb" *ngIf="dataAndAnalyticsView | async; let view">
-    <ol class="breadcrumb" *ngIf="displayView | async; let displayView">
-      <li class="breadcrumb-item active" aria-current="page">
-        <a [routerLink]="['/data-and-analytics']">{{ 'DATA_AND_ANALYTICS.LABEL' | translate }}</a>
-      </li>
-      <li class="breadcrumb-item active" aria-current="page" >
-        <a [routerLink]="['/data-and-analytics', view.name]" [queryParams]="getQueryParams(params, view, displayView)">{{ view.name }} </a>
-      </li>
-    </ol>
-  </nav>
+  <div *ngIf="selectedOrganization | async; let organization">
 
-  <!-- organization navigation -->
-  <nav aria-label="breadcrumb">
-    <ol class="breadcrumb" *ngIf="organizations | async; let organizations">
-      <ng-template ngFor let-organization [ngForOf]="organizations" let-i="organization"  let-index="index"  [ngForTrackBy]="trackByIndex">
+     <!-- view navigation -->
+    <nav aria-label="breadcrumb" *ngIf="dataAndAnalyticsView | async; let view">
+      <ol class="breadcrumb" *ngIf="displayView | async; let displayView">
         <li class="breadcrumb-item active" aria-current="page">
-          <a (click)="onNavigateOrganization(params, organizations, index)">{{ organization.name }}</a>
+          <a [routerLink]="['/data-and-analytics']">{{ 'DATA_AND_ANALYTICS.LABEL' | translate }}</a>
         </li>
-      </ng-template>
-    </ol>
-  </nav>
+        <li class="breadcrumb-item active" aria-current="page" >
+          <a [routerLink]="['/data-and-analytics', view.name]" [queryParams]="getQueryParams(params, view, displayView, organization.id)">{{ organization.name }} </a>
+        </li>
+      </ol>
+    </nav>
 
-  <div *ngIf="displayView | async; let displayView">
-    <div *ngIf="selectedOrganization | async; let organization">
+    <div *ngIf="displayView | async; let displayView">
 
       <div class="card-columns" *ngIf="isDashboard | async" [@fadeIn]>
         <ng-template ngFor let-view [ngForOf]="dataAndAnalyticsViews | async" let-i="view" [ngForTrackBy]="trackByIndex">
@@ -45,12 +35,12 @@
                     <div *ngSwitchCase="'PROFILE_SUMMARIES_EXPORT'">
                       <span>{{ view.type }}</span>
                     </div>
-                    <div *ngSwitchDefault>{{ view.layout }} Unknown</div>
+                    <div *ngSwitchDefault>{{ 'DATA_AND_ANALYTICS.UNKNOWN' | translate: { value: view.layout } }}</div>
                   </div>
                 </div>
-                <div *ngSwitchCase="'GRID'">{{ view.layout }} Not Supported</div>
-                <div *ngSwitchCase="'LIST'">{{ view.layout }} Not Supported</div>
-                <div *ngSwitchDefault>{{ view.layout }} Unknown</div>
+                <div *ngSwitchCase="'GRID'">{{ 'DATA_AND_ANALYTICS.NOT_SUPPORTED' | translate: { value: view.layout } }}</div>
+                <div *ngSwitchCase="'LIST'">{{ 'DATA_AND_ANALYTICS.NOT_SUPPORTED' | translate: { value: view.layout } }}</div>
+                <div *ngSwitchDefault>{{ 'DATA_AND_ANALYTICS.UNKNOWN' | translate: { value: view.layout } }}</div>
               </div>
             </a>
           </div>
@@ -61,7 +51,10 @@
         <div class="card-deck">
           <div class="card">
             <div class="card-header">
-              {{ view.name }}
+              <div class="d-flex justify-content-between align-items-center" *ngIf="themeOrganizationId | async; let themeOrganizationId">
+                <div>{{ view.name }}</div>
+                <a class="btn btn-link text-primary" (click)="onSelectOrganization(themeOrganizationId, params)">{{ 'DATA_AND_ANALYTICS.RESET' | translate }}</a>
+              </div>
             </div>
             <div class="card-body" [ngSwitch]="view.layout">
 
@@ -74,7 +67,7 @@
               <div class="row p-1 mb-2">
                 <div class="col-12">
                   <span class="h4 font-weight-bold">{{ 'DATA_AND_ANALYTICS.ORGANIZATION' | translate }}: </span>
-                  <span class="h4">{{ organization.name }} ({{ organization.people.length }})</span>
+                  <span class="h4">{{ organization.name }}</span>
                 </div>
               </div>
 
@@ -92,30 +85,30 @@
               </div>
 
               <div class="row p-1">
-                <div class="col-4" *ngIf="(colleges | async).length > 0">
+                <div class="col-4" *ngIf="colleges | async; let colleges">
                   <div class="form-group">
-                    <label class="font-weight-bold">{{ 'DATA_AND_ANALYTICS.COLLEGE' | translate }}</label>
-                    <select class="form-control" ngModel (ngModelChange)="onSelectOrganization($event, params)">
+                    <label class="font-weight-bold">{{ 'DATA_AND_ANALYTICS.COLLEGES_AND_SCHOOLS' | translate }}</label>
+                    <select #collegesSelect id="collegesSelect" class="form-control" ngModel (ngModelChange)="onSelectOrganization($event, params, collegesSelect)">
                       <option value="" disabled selected>{{ 'DATA_AND_ANALYTICS.SELECT' | translate }}</option>
-                      <option *ngFor="let so of colleges | async" [ngValue]="so.id">{{ so.label }}</option>
+                      <option *ngFor="let so of colleges" [ngValue]="so.id">{{ so.name }}</option>
                     </select>
                   </div>
                 </div>
-                <div class="col-4" *ngIf="(departments | async).length > 0">
+                <div class="col-4" *ngIf="departments | async; let departments">
                   <div class="form-group">
-                    <label class="font-weight-bold">{{ 'DATA_AND_ANALYTICS.DEPARTMENT' | translate }}</label>
-                    <select class="form-control" ngModel (ngModelChange)="onSelectOrganization($event, params)">
+                    <label class="font-weight-bold">{{ 'DATA_AND_ANALYTICS.DEPARTMENTS' | translate }}</label>
+                    <select #departmentsSelect id="departmentsSelect" class="form-control" ngModel (ngModelChange)="onSelectOrganization($event, params, departmentsSelect)">
                       <option value="" disabled selected>{{ 'DATA_AND_ANALYTICS.SELECT' | translate }}</option>
-                      <option *ngFor="let so of departments | async" [ngValue]="so.id">{{ so.label }}</option>
+                      <option *ngFor="let so of departments" [ngValue]="so.id">{{ so.name }}</option>
                     </select>
                   </div>
                 </div>
-                <div class="col-4" *ngIf="(others | async).length > 0">
+                <div class="col-4" *ngIf="others | async; let others">
                   <div class="form-group">
                     <label class="font-weight-bold">{{ 'DATA_AND_ANALYTICS.OTHERS' | translate }}</label>
-                    <select class="form-control" ngModel (ngModelChange)="onSelectOrganization($event, params)">
+                    <select #othersSelect id="othersSelect" class="form-control" ngModel (ngModelChange)="onSelectOrganization($event, params, othersSelect)">
                       <option value="" disabled selected>{{ 'DATA_AND_ANALYTICS.SELECT' | translate }}</option>
-                      <option *ngFor="let so of others | async" [ngValue]="so.id">{{ so.label }}</option>
+                      <option *ngFor="let so of others" [ngValue]="so.id">{{ so.name }}</option>
                     </select>
                   </div>
                 </div>
@@ -152,12 +145,12 @@
                       (labelEvent)="onLabelEvent($event)">
                     </scholars-profile-summaries-export>
                   </div>
-                  <div *ngSwitchDefault>{{ view.type }} Unknown</div>
+                  <div *ngSwitchDefault>{{ 'DATA_AND_ANALYTICS.UNKNOWN' | translate: { value: view.type } }}</div>
                 </div>
               </div>
-              <div *ngSwitchCase="'GRID'">{{ view.layout }} Not Supported</div>
-              <div *ngSwitchCase="'LIST'">{{ view.layout }} Not Supported</div>
-              <div *ngSwitchDefault>{{ view.layout }} Unknown</div>
+              <div *ngSwitchCase="'GRID'">{{ 'DATA_AND_ANALYTICS.NOT_SUPPORTED' | translate: { value: view.layout } }}</div>
+              <div *ngSwitchCase="'LIST'">{{ 'DATA_AND_ANALYTICS.NOT_SUPPORTED' | translate: { value: view.layout } }}</div>
+              <div *ngSwitchDefault>{{ 'DATA_AND_ANALYTICS.UNKNOWN' | translate: { value: view.layout } }}</div>
             </div>
           </div>
         </div>

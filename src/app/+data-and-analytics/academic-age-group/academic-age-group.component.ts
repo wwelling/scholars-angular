@@ -11,6 +11,7 @@ import { DialogService } from '../../core/service/dialog.service';
 import { AppState } from '../../core/store';
 import { selectResourcesAcademicAge } from '../../core/store/sdr';
 import { AcademicAge } from '../../core/store/sdr/sdr.reducer';
+import { selectActiveThemeVariant } from '../../core/store/theme';
 import { fadeIn } from '../../shared/utilities/animation.utility';
 import { BarplotComponent, BarplotInput } from './barplot/barplot.component';
 
@@ -74,6 +75,8 @@ export class AcademicAgeGroupComponent implements OnInit, OnChanges {
 
   public averagePubRateAcademicAge: Observable<BarplotInput>;
 
+  public primaryThemeColor: Observable<string>;
+
   private sidebarMenuSections: { [key: string]: { facet: Facet, index: number } };
 
   constructor(
@@ -127,6 +130,10 @@ export class AcademicAgeGroupComponent implements OnInit, OnChanges {
       filter((ra: AcademicAge) => !!ra && (ra.label === rk || ra.label === apk)),
       map(academicAgeGroupToBarplotInput)
     );
+
+    this.primaryThemeColor = this.store.pipe(
+      select(selectActiveThemeVariant('--primary'))
+    );
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -176,15 +183,17 @@ export class AcademicAgeGroupComponent implements OnInit, OnChanges {
         additionalFilters.shift();
       }
 
-      this.barplots.forEach(barplot => barplot.draw());
-
       if (this.organization.id === this.defaultId) {
         this.maxOverride.next(3000);
+      } else {
+        this.maxOverride.next(undefined);
       }
+
+      this.barplots.forEach(barplot => barplot.draw());
 
       if (this.organization.id !== this.defaultId && !!this.organization.name) {
         additionalFilters.push({
-          field: 'positionOrganization',
+          field: 'organizations',
           value: this.organization.name,
           opKey: OpKey.EQUALS
         });
