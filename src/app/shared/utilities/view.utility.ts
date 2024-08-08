@@ -114,7 +114,7 @@ const removeFilterFromQueryParams = (queryParams: Params, filterToRemove: Filter
     queryParams[`${filterToRemove.field}.filter`] = filterValues
       .filter((filterValue: string) => filterValue !== filterToRemove.value)
       .join(FILTER_VALUE_DELIMITER);
-  } // else (filterValues.length < 1) do nothing 
+  } // else (filterValues.length < 1) do nothing
 };
 
 const resetFiltersInQueryParams = (queryParams: Params, collectionView: CollectionView): void => {
@@ -169,7 +169,7 @@ const showClearFilters = (collectionView: CollectionView, filters: Filter[]): bo
 };
 
 const getFilterField = (collectionView: CollectionView, actualFilter: Filter): string => {
-  return actualFilter.field;
+  return collectionView.facets.find(f => f.field === actualFilter.field).name;
 };
 
 const getFilterValue = (collectionView: CollectionView, actualFilter: Filter): string => {
