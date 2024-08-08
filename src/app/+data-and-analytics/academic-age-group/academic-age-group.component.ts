@@ -148,14 +148,14 @@ export class AcademicAgeGroupComponent implements OnInit, OnChanges {
 
       if (filters) {
         if (filters.previousValue) {
-          filters.previousValue.forEach((previousValue: any) => {
-            if (filters.currentValue.indexOf(previousValue) === -1) {
-              const section = this.sidebarMenuSections[previousValue.field];
+          filters.previousValue.forEach((previousFilter: any) => {
+            if (filters.currentValue.indexOf(previousFilter) === -1) {
+              const section = this.sidebarMenuSections[previousFilter.field];
               if (section) {
                 this.store.dispatch(new fromSidebar.RemoveSectionAction({
                   sectionIndex: section.index,
-                  itemLabel: previousValue.value,
-                  itemField: previousValue.field,
+                  itemLabel: previousFilter.value,
+                  itemField: previousFilter.field,
                 }));
               }
             }

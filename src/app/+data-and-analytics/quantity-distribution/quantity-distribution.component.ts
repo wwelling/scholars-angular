@@ -195,33 +195,33 @@ export class QuantityDistributionComponent implements OnChanges, OnDestroy, OnIn
 
     const additionalFilters = [];
 
-    if (!!filters) {
-      if (!!filters.previousValue) {
-        filters.previousValue.forEach((entry: any) => {
-          if (filters.currentValue.indexOf(entry) === -1) {
-            const section = this.sidebarMenuSections[entry.field];
-            if (!!section) {
+    if (filters) {
+      if (filters.previousValue) {
+        filters.previousValue.forEach((previousFilter: any) => {
+          if (filters.currentValue.indexOf(previousFilter) === -1) {
+            const section = this.sidebarMenuSections[previousFilter.field];
+            if (section) {
               this.store.dispatch(new fromSidebar.RemoveSectionAction({
                 sectionIndex: section.index,
-                itemLabel: entry.value,
-                itemField: entry.field,
+                itemLabel: previousFilter.value,
+                itemField: previousFilter.field,
               }));
             }
           }
         });
       }
 
-      filters.currentValue.forEach((entry: any) => {
-        if (filters.previousValue === undefined || filters.previousValue.indexOf(entry) === -1) {
-          const section = this.sidebarMenuSections[entry.field];
-          if (!!section) {
+      filters.currentValue.forEach((currentFilter: any) => {
+        if (filters.previousValue === undefined || filters.previousValue.indexOf(currentFilter) === -1) {
+          const section = this.sidebarMenuSections[currentFilter.field];
+          if (section) {
             this.store.dispatch(new fromSidebar.AddSectionItemAction({
               sectionIndex: section.index,
               sectionItem: {
                 type: SidebarItemType.ACTION,
-                label: entry.value,
+                label: currentFilter.value,
                 selected: true,
-                action: new fromRouter.RemoveFilter({ filter: entry }),
+                action: new fromRouter.RemoveFilter({ filter: currentFilter }),
               }
             }));
           }
