@@ -7,7 +7,7 @@ import { Observable, asapScheduler, combineLatest, defer, scheduled } from 'rxjs
 import { catchError, filter, map, mergeMap, skipWhile, switchMap, take, withLatestFrom } from 'rxjs/operators';
 
 import { AppState } from '../';
-import { FILTER_VALUE_DELIMITER, buildDateYearFilterValue, buildNumberRangeFilterValue, createSdrRequest, getFacetFilterLabel } from '../../../shared/utilities/discovery.utility';
+import { FILTER_VALUE_DELIMITER, buildDateYearFilterValue, buildNumberRangeFilterValue, createSdrRequest, getFacetFilterLabel, hasFilter } from '../../../shared/utilities/discovery.utility';
 import { removeFilterFromQueryParams } from '../../../shared/utilities/view.utility';
 import { Individual } from '../../model/discovery';
 import { injectable, repos } from '../../model/repos';
@@ -800,7 +800,7 @@ export class SdrEffects {
 
                 if (selected) {
                   sidebarSection.collapsed = false;
-                  if (sidebarItem.queryParams.filters && sidebarItem.queryParams.filters.indexOf(sdrFacet.field) >= 0) {
+                  if (hasFilter(sidebarItem.queryParams.filters, sdrFacet.field)) {
                     const queryParams: Params = Object.assign({}, sidebarItem.queryParams);
                     removeFilterFromQueryParams(queryParams, {
                       field: sdrFacet.field,
@@ -813,7 +813,7 @@ export class SdrEffects {
                   selectedFilterValues.push(filterValue);
                 } else {
                   if (sidebarItem.queryParams.filters) {
-                    if (sidebarItem.queryParams.filters.indexOf(sdrFacet.field) < 0) {
+                    if (!hasFilter(sidebarItem.queryParams.filters, sdrFacet.field)) {
                       sidebarItem.queryParams.filters += `,${sdrFacet.field}`;
                     }
                   } else {

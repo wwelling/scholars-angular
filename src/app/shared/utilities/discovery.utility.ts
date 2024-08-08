@@ -8,6 +8,8 @@ import { CustomRouterState } from '../../core/store/router/router.reducer';
 
 export const FILTER_VALUE_DELIMITER = ';;';
 
+export const hasFilter = (filters: string, filter: string): boolean => filters?.trim().split(',').find(f => f === filter) !== undefined;
+
 export const buildDateYearFilterValue = (facetEntry: SdrFacetEntry): string => {
   const date = new Date(facetEntry.value);
   const year = date.getUTCFullYear();

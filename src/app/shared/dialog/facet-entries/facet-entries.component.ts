@@ -15,7 +15,7 @@ import { AppState } from '../../../core/store';
 import { selectRouterQueryParams, selectRouterState } from '../../../core/store/router';
 import { CustomRouterState } from '../../../core/store/router/router.reducer';
 import { selectCollectionViewByName } from '../../../core/store/sdr';
-import { FILTER_VALUE_DELIMITER, buildDateYearFilterValue, buildNumberRangeFilterValue, createSdrRequest, getFacetFilterLabel } from '../../utilities/discovery.utility';
+import { FILTER_VALUE_DELIMITER, buildDateYearFilterValue, buildNumberRangeFilterValue, createSdrRequest, getFacetFilterLabel, hasFilter } from '../../utilities/discovery.utility';
 
 import * as fromDialog from '../../../core/store/dialog/dialog.actions';
 
@@ -258,7 +258,7 @@ export class FacetEntriesComponent implements OnDestroy, OnInit {
     }
     queryParams[`${this.field}.pageNumber`] = 1;
     if (queryParams.filters && queryParams.filters.length > 0) {
-      if (queryParams.filters.indexOf(this.field) < 0) {
+      if (!hasFilter(queryParams.filters, this.field)) {
         queryParams.filters += `,${facet.field}`;
       }
     } else {
