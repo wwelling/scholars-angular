@@ -13,6 +13,7 @@ import { AppState } from '../../core/store';
 import { selectResourcesQuantityDistribution } from '../../core/store/sdr';
 import { QuantityDistribution } from '../../core/store/sdr/sdr.reducer';
 import { fadeIn } from '../../shared/utilities/animation.utility';
+import { getFacetFilterLabel } from '../../shared/utilities/discovery.utility';
 import { id } from '../../shared/utilities/id.utility';
 import { getUNSDGByValue, getUNSDGIndexByValue } from '../../shared/utilities/un-sdg.utility';
 
@@ -54,7 +55,7 @@ export class QuantityDistributionComponent implements OnChanges, OnDestroy, OnIn
 
   public id: string;
 
-  private sidebarMenuSections: { [key: string]: { facet:Facet, index: number } };
+  private sidebarMenuSections: { [key: string]: { facet: Facet, index: number } };
 
   private subscriptions: Subscription[];
 
@@ -82,7 +83,7 @@ export class QuantityDistributionComponent implements OnChanges, OnDestroy, OnIn
 
     const menu: SidebarMenu = {
       sections: this.dataAndAnalyticsView.facets.map((facet: Facet, index: number) => {
-        this.sidebarMenuSections[facet.field] = { facet, index};
+        this.sidebarMenuSections[facet.field] = { facet, index };
         return {
           title: facet.name,
           expandable: facet.expandable,
@@ -193,54 +194,56 @@ export class QuantityDistributionComponent implements OnChanges, OnDestroy, OnIn
   ngOnChanges(changes: SimpleChanges): void {
     const { filters } = changes;
 
-    const additionalFilters = [];
+    setTimeout(() => {
+      const additionalFilters = [];
 
-    if (filters) {
-      if (filters.previousValue) {
-        filters.previousValue.forEach((previousFilter: any) => {
-          if (filters.currentValue.indexOf(previousFilter) === -1) {
-            const section = this.sidebarMenuSections[previousFilter.field];
+      if (filters) {
+        if (filters.previousValue) {
+          filters.previousValue.forEach((previousFilter: any) => {
+            if (filters.currentValue.indexOf(previousFilter) === -1) {
+              const section = this.sidebarMenuSections[previousFilter.field];
+              if (section) {
+                this.store.dispatch(new fromSidebar.RemoveSectionAction({
+                  sectionIndex: section.index,
+                  itemLabel: getFacetFilterLabel(section.facet, previousFilter),
+                  itemField: previousFilter.field,
+                }));
+              }
+            }
+          });
+        }
+
+        filters.currentValue.forEach((currentFilter: any) => {
+          if (filters.previousValue === undefined || filters.previousValue.indexOf(currentFilter) === -1) {
+            const section = this.sidebarMenuSections[currentFilter.field];
             if (section) {
-              this.store.dispatch(new fromSidebar.RemoveSectionAction({
+              this.store.dispatch(new fromSidebar.AddSectionItemAction({
                 sectionIndex: section.index,
-                itemLabel: previousFilter.value,
-                itemField: previousFilter.field,
+                sectionItem: {
+                  type: SidebarItemType.ACTION,
+                  label: getFacetFilterLabel(section.facet, currentFilter),
+                  selected: true,
+                  action: new fromRouter.RemoveFilter({ filter: currentFilter }),
+                }
               }));
             }
           }
+
+          additionalFilters.push(currentFilter);
+        });
+
+      }
+
+      if (this.organization.id !== this.defaultId && !!this.organization.name) {
+        additionalFilters.push({
+          field: 'authors.organizations',
+          value: this.organization.name,
+          opKey: OpKey.EQUALS
         });
       }
 
-      filters.currentValue.forEach((currentFilter: any) => {
-        if (filters.previousValue === undefined || filters.previousValue.indexOf(currentFilter) === -1) {
-          const section = this.sidebarMenuSections[currentFilter.field];
-          if (section) {
-            this.store.dispatch(new fromSidebar.AddSectionItemAction({
-              sectionIndex: section.index,
-              sectionItem: {
-                type: SidebarItemType.ACTION,
-                label: currentFilter.value,
-                selected: true,
-                action: new fromRouter.RemoveFilter({ filter: currentFilter }),
-              }
-            }));
-          }
-        }
-      });
-
-      additionalFilters.push(filters.currentValue);
-      additionalFilters.shift();
-    }
-
-    if (this.organization.id !== this.defaultId && !!this.organization.name) {
-      additionalFilters.push({
-        field: 'authorOrganization',
-        value: this.organization.name,
-        opKey: OpKey.EQUALS
-      });
-    }
-
-    this.dispatch(additionalFilters);
+      this.dispatch(additionalFilters);
+    });
   }
 
   private dispatch(additionalFilters: Filter[]): void {

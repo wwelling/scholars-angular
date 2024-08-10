@@ -15,7 +15,7 @@ import { AppState } from '../../../core/store';
 import { selectRouterQueryParams, selectRouterState } from '../../../core/store/router';
 import { CustomRouterState } from '../../../core/store/router/router.reducer';
 import { selectCollectionViewByName } from '../../../core/store/sdr';
-import { FILTER_VALUE_DELIMITER, buildDateYearFilterValue, buildNumberRangeFilterValue, createSdrRequest, getFacetFilterLabel } from '../../utilities/discovery.utility';
+import { FILTER_VALUE_DELIMITER, buildDateYearFilterValue, buildNumberRangeFilterValue, createSdrRequest, getFacetEntryLabel } from '../../utilities/discovery.utility';
 
 import * as fromDialog from '../../../core/store/dialog/dialog.actions';
 
@@ -59,6 +59,8 @@ export class FacetEntriesComponent implements OnDestroy, OnInit {
 
   private selections: BehaviorSubject<SdrFacetEntry[]>;
 
+  private selectedQueryParams: BehaviorSubject<Params>;
+
   private subscriptions: Subscription[];
 
   constructor(
@@ -70,6 +72,7 @@ export class FacetEntriesComponent implements OnDestroy, OnInit {
     private individualRepo: IndividualRepo
   ) {
     this.selections = new BehaviorSubject<SdrFacetEntry[]>([]);
+    this.selectedQueryParams = new BehaviorSubject<Params>({});
     this.subscriptions = [];
   }
 
@@ -109,11 +112,9 @@ export class FacetEntriesComponent implements OnDestroy, OnInit {
 
             const queryParams = {
               ...routerState.queryParams,
+              ...this.selectedQueryParams.value,
               filters
             };
-
-            queryParams[`${this.field}.filter`] = this.selections.value.map((entry: SdrFacetEntry) => entry.value).join(FILTER_VALUE_DELIMITER);
-            queryParams[`${this.field}.opKey`] = OpKey.EQUALS;
 
             this.router.navigate([], {
               relativeTo: this.route,
@@ -222,16 +223,16 @@ export class FacetEntriesComponent implements OnDestroy, OnInit {
     );
   }
 
-  public selected(entry: SdrFacetEntry): number {
+  public getSelected(entry: SdrFacetEntry): number {
     return this.selections.value.indexOf(entry);
   }
 
   public isSelected(entry: SdrFacetEntry): boolean {
-    return this.selected(entry) >= 0;
+    return this.getSelected(entry) >= 0;
   }
 
-  public selectionChanged(entry: SdrFacetEntry): void {
-    const selected = this.selected(entry);
+  public onSelectionChanged(facet: Facet, entry: SdrFacetEntry): void {
+    const selected = this.getSelected(entry);
     const selections = [...this.selections.value];
     if (selected >= 0) {
       selections.splice(selected, 1);
@@ -239,10 +240,15 @@ export class FacetEntriesComponent implements OnDestroy, OnInit {
       selections.push(entry);
     }
     this.selections.next(selections);
+
+    const queryParams: Params = {};
+    queryParams[`${this.field}.filter`] = this.selections.value.map((entry: SdrFacetEntry) => this.getQueryParamsForFacetEntry(facet, entry)[`${this.field}.filter`]).join(FILTER_VALUE_DELIMITER);
+    queryParams[`${this.field}.opKey`] = facet.opKey;
+    this.selectedQueryParams.next(queryParams);
   }
 
   public getFacetRangeValue(facet: Facet, entry: SdrFacetEntry): string {
-    return getFacetFilterLabel(facet, entry);
+    return getFacetEntryLabel(facet, entry);
   }
 
   public getStringValue(entry: SdrFacetEntry): string {
@@ -250,7 +256,23 @@ export class FacetEntriesComponent implements OnDestroy, OnInit {
   }
 
   public getQueryParams(params: Params, facet: Facet, entry: SdrFacetEntry): Params {
-    const queryParams: Params = Object.assign({}, params);
+    const queryParams: Params = {
+      ...params,
+      ...this.getQueryParamsForFacetEntry(facet, entry)
+    };
+    queryParams[`${this.field}.pageNumber`] = 1;
+    if (queryParams.filters && queryParams.filters.length > 0) {
+      if (queryParams.filters.indexOf(this.field) < 0) {
+        queryParams.filters += `,${facet.field}`;
+      }
+    } else {
+      queryParams.filters = facet.field;
+    }
+    return queryParams;
+  }
+
+  private getQueryParamsForFacetEntry(facet: Facet, entry: SdrFacetEntry): Params {
+    const queryParams: Params = { };
     switch (facet.type) {
       case FacetType.DATE_YEAR:
         queryParams[`${this.field}.filter`] = buildDateYearFilterValue(entry);
@@ -265,14 +287,7 @@ export class FacetEntriesComponent implements OnDestroy, OnInit {
         queryParams[`${this.field}.opKey`] = OpKey.EQUALS;
         break;
     }
-    queryParams[`${this.field}.pageNumber`] = 1;
-    if (queryParams.filters && queryParams.filters.length > 0) {
-      if (queryParams.filters.indexOf(this.field) < 0) {
-        queryParams.filters += `,${facet.field}`;
-      }
-    } else {
-      queryParams.filters = facet.field;
-    }
+
     return queryParams;
   }
 
