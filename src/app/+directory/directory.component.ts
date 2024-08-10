@@ -11,6 +11,7 @@ import { DirectoryView, DiscoveryView, Filter } from '../core/model/view';
 import { AppState } from '../core/store';
 import { selectRouterQueryParamFilters, selectRouterQueryParams } from '../core/store/router';
 import { selectAllResources, selectDiscoveryViewByClass, selectResourceById, selectResourceIsLoading, selectResourcesFacets, selectResourcesPage } from '../core/store/sdr';
+import { hasFilter } from '../shared/utilities/discovery.utility';
 import { addExportToQueryParams, getFilterField, getFilterValue, hasExport, removeFilterFromQueryParams, resetFiltersInQueryParams, showClearFilters, showFilter } from '../shared/utilities/view.utility';
 
 @Component({
@@ -82,7 +83,7 @@ export class DirectoryComponent implements OnDestroy, OnInit {
 
   public isActive(directoryView: DirectoryView, params: Params, option: string): boolean {
     const queryParams: Params = Object.assign({}, params);
-    if (queryParams.filters && queryParams.filters.indexOf(directoryView.index.field) >= 0) {
+    if (hasFilter(queryParams.filters, directoryView.index.field)) {
       return queryParams[`${directoryView.index.field}.filter`] === option;
     }
     return option === 'All';
@@ -130,7 +131,7 @@ export class DirectoryComponent implements OnDestroy, OnInit {
 
   public getDirectoryQueryParamsResetting(params: Params, directoryView: DirectoryView): Params {
     const queryParams: Params = Object.assign({}, params);
-    if (queryParams.filters && queryParams.filters.indexOf(directoryView.index.field) >= 0) {
+    if (hasFilter(queryParams.filters, directoryView.index.field)) {
       const filters = queryParams.filters.split(',')
         .map((field) => field.trim())
         .filter((field) => field !== directoryView.index.field);
