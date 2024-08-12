@@ -41,15 +41,13 @@ export class CoInvestigatorNetworkComponent implements OnDestroy, OnInit {
       filter((individual: DataNetwork) => individual !== undefined),
     );
 
-    setTimeout(() => {
-      this.route.parent.data.subscribe(data => {
-        this.store.dispatch(new fromSdr.GetNetworkAction('individual', {
-          id: data.individual.id,
-          dateField: 'dateTimeIntervalStart',
-          dataFields: ['contributors'],
-          typeFilter: 'class:Relationship AND type:Grant'
-        }));
-      });
+    this.route.parent.data.subscribe(data => {
+      this.store.dispatch(new fromSdr.GetNetworkAction('individual', {
+        id: data.individual.id,
+        dateField: 'dateTimeIntervalStart',
+        dataFields: ['contributors'],
+        typeFilter: 'class:Relationship AND type:Grant'
+      }));
     });
   }
 
