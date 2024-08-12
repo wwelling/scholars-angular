@@ -5,7 +5,7 @@ import { filter } from 'rxjs';
 
 import { Individual } from '../core/model/discovery';
 import { AppState } from '../core/store';
-import { selectResourceById } from '../core/store/sdr';
+import { selectResourceSelected } from '../core/store/sdr';
 import { CoAuthorNetworkComponent } from './co-author-network/co-author-network.component';
 import { CoInvestigatorNetworkComponent } from './co-investigator-network/co-investigator-network.component';
 import { VisualizationComponent } from './visualization.component';
@@ -20,11 +20,11 @@ export const individualResolver: ResolveFn<Individual> = (
 
   const id = route.params.id;
 
-  store.dispatch(new fromSdr.GetOneResourceAction('individual', { id }));
+  store.dispatch(new fromSdr.SelectResourceAction('individual', { id }));
 
   return store.pipe(
-    select(selectResourceById('individual', id)),
-    filter((individual: Individual) => individual !== undefined)
+    select(selectResourceSelected('individual')),
+    filter((individual: Individual) => individual !== undefined),
   );
 };
 
@@ -33,7 +33,7 @@ export const routes: Routes = [
     path: ':id',
     component: VisualizationComponent,
     resolve: {
-      individual: individualResolver
+      individual: individualResolver,
     },
     children: [
       {
@@ -50,7 +50,7 @@ export const routes: Routes = [
           tags: [{ name: 'view', content: 'Scholars Co-investigator Network' }],
         },
       },
-      { path: '**', redirectTo: 'Co-author Network' },
+      { path: '**', redirectTo: '/' },
     ],
   },
   { path: '**', redirectTo: '/' },

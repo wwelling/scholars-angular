@@ -1,17 +1,16 @@
 import { isPlatformBrowser } from '@angular/common';
-import { PLATFORM_ID, Inject, Injectable } from '@angular/core';
+import { Inject, Injectable, PLATFORM_ID } from '@angular/core';
 import { ActivatedRouteSnapshot, RouterStateSnapshot } from '@angular/router';
 import { Store, select } from '@ngrx/store';
 
-import { Observable, scheduled } from 'rxjs';
-import { asapScheduler } from 'rxjs';
+import { Observable, asapScheduler, scheduled } from 'rxjs';
 import { filter, map, switchMap } from 'rxjs/operators';
 
 import { AlertService } from '../service/alert.service';
 import { DialogService } from '../service/dialog.service';
 
-import { AppState } from '../store';
 import { Role, User } from '../model/user';
+import { AppState } from '../store';
 
 import { selectIsAuthenticated, selectUser } from '../store/auth';
 
@@ -19,7 +18,7 @@ import * as fromAuth from '../store/auth/auth.actions';
 import * as fromRouter from '../store/router/router.actions';
 
 @Injectable()
-export class AuthGuard  {
+export class AuthGuard {
 
   constructor(
     @Inject(PLATFORM_ID) private platformId: string,
