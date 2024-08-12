@@ -4,10 +4,11 @@ import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { Store, select } from '@ngrx/store';
 import { TranslateService } from '@ngx-translate/core';
 import { Observable, asapScheduler, combineLatest, defer, of, scheduled } from 'rxjs';
-import { catchError, filter, map, mergeMap, skip, skipWhile, switchMap, take, withLatestFrom } from 'rxjs/operators';
+import { catchError, filter, map, mergeMap, skipWhile, switchMap, take, withLatestFrom } from 'rxjs/operators';
 
 import { AppState } from '../';
-import { FILTER_VALUE_DELIMITER, buildDateYearFilterValue, buildNumberRangeFilterValue, createSdrRequest, getFacetFilterLabel, hasFilter } from '../../../shared/utilities/discovery.utility';
+
+import { FILTER_VALUE_DELIMITER, buildDateYearFilterValue, buildNumberRangeFilterValue, createSdrRequest, getFacetEntryLabel, hasFilter } from '../../../shared/utilities/discovery.utility';
 import { removeFilterFromQueryParams } from '../../../shared/utilities/view.utility';
 import { Individual } from '../../model/discovery';
 import { injectable, repos } from '../../model/repos';
@@ -808,7 +809,7 @@ export class SdrEffects {
 
                 const sidebarItem: SidebarItem = {
                   type: SidebarItemType.FACET,
-                  label: getFacetFilterLabel(viewFacet, facetEntry),
+                  label: getFacetEntryLabel(viewFacet, facetEntry),
                   facet: viewFacet,
                   parenthetical: facetEntry.count,
                   selected,
