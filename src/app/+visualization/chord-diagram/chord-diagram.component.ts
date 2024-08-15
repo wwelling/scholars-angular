@@ -1,5 +1,6 @@
 import { isPlatformServer } from '@angular/common';
-import { ChangeDetectionStrategy, Component, Inject, Input, OnInit, PLATFORM_ID } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Inject, Input, OnChanges, PLATFORM_ID, SimpleChanges } from '@angular/core';
+
 import { Router } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
 
@@ -15,7 +16,7 @@ import { id } from '../../shared/utilities/id.utility';
   styleUrls: ['./chord-diagram.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ChordDiagramComponent implements OnInit {
+export class ChordDiagramComponent implements OnChanges {
 
   @Input() dataNetwork: DataNetwork;
 
@@ -47,7 +48,8 @@ export class ChordDiagramComponent implements OnInit {
     this.id = id();
   }
 
-  ngOnInit(): void {
+  ngOnChanges(changes: SimpleChanges): void {
+
     if (isPlatformServer(this.platformId) || this.dataNetwork === undefined) {
       return;
     }
@@ -131,6 +133,8 @@ export class ChordDiagramComponent implements OnInit {
       };
 
       const figure = d3.select(`#${this.id}`);
+
+      figure.select("svg").remove();
 
       const tooltip = figure
         .append('div')
