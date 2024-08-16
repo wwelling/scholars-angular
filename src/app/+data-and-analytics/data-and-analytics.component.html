@@ -2,19 +2,26 @@
   <div *ngIf="selectedOrganization | async; let organization">
 
      <!-- view navigation -->
-    <nav aria-label="breadcrumb" *ngIf="dataAndAnalyticsView | async; let view">
-      <ol class="breadcrumb" *ngIf="displayView | async; let displayView">
-        <li class="breadcrumb-item active" aria-current="page">
-          <a [routerLink]="['/data-and-analytics']">{{ 'DATA_AND_ANALYTICS.LABEL' | translate }}</a>
-        </li>
-        <li class="breadcrumb-item active" aria-current="page" >
-          <a [routerLink]="['/data-and-analytics', view.name]" [queryParams]="getQueryParams(params, view, displayView, organization.id)">{{ organization.name }} </a>
-        </li>
-      </ol>
-    </nav>
+    <div *ngIf="dataAndAnalyticsView | async; let view">
+      <nav aria-label="breadcrumb" *ngIf="displayView | async; let displayView">
+        <ol class="breadcrumb" *ngIf="themeOrganizationId | async; let themeOrganizationId">
+          <li class="breadcrumb-item active" aria-current="page">
+            <a [routerLink]="['/data-and-analytics']">{{ 'DATA_AND_ANALYTICS.LABEL' | translate }}</a>
+          </li>
+          <li class="breadcrumb-item active" aria-current="page" >
+            <a (click)="onSelectOrganization(themeOrganizationId, params)">{{ view.name }}</a>
+          </li>
+          <li class="breadcrumb-item active" aria-current="page" >
+            <a (click)="onSelectOrganization(themeOrganizationId, params)">{{ themeOrganization | async }} </a>
+          </li>
+          <li *ngIf="themeOrganizationId !== organization.id" class="breadcrumb-item active" aria-current="page" >
+            <a [routerLink]="['/data-and-analytics', view.name]" [queryParams]="getQueryParams(params, view, displayView, organization.id)">{{ organization.name }} </a>
+          </li>
+        </ol>
+      </nav>
+    </div>
 
     <div *ngIf="displayView | async; let displayView">
-
       <div class="card-columns" *ngIf="isDashboard | async" [@fadeIn]>
         <ng-template ngFor let-view [ngForOf]="dataAndAnalyticsViews | async" let-i="view" [ngForTrackBy]="trackByIndex">
           <div class="card">
@@ -50,12 +57,6 @@
       <div [@fadeIn] *ngIf="dataAndAnalyticsView | async; let view">
         <div class="card-deck">
           <div class="card">
-            <div class="card-header">
-              <div class="d-flex justify-content-between align-items-center" *ngIf="themeOrganizationId | async; let themeOrganizationId">
-                <div>{{ view.name }}</div>
-                <a class="btn btn-link text-primary" (click)="onSelectOrganization(themeOrganizationId, params)">{{ 'DATA_AND_ANALYTICS.RESET' | translate }}</a>
-              </div>
-            </div>
             <div class="card-body" [ngSwitch]="view.layout">
 
               <div class="row p-1 mb-2" *ngIf="(label | async)?.length > 0">
