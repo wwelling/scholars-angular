@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { ActivatedRoute, Params, Router } from '@angular/router';
 import { Store, select } from '@ngrx/store';
-import { BehaviorSubject, Observable, combineLatest, filter, map, switchMap, take, withLatestFrom } from 'rxjs';
+import { BehaviorSubject, Observable, combineLatest, filter, map, take, withLatestFrom } from 'rxjs';
 
 import { Individual } from '../core/model/discovery';
 import { IndividualRepo } from '../core/model/discovery/repo/individual.repo';
@@ -10,7 +10,7 @@ import { ContainerType } from '../core/model/view/data-and-analytics-view';
 import { AppState } from '../core/store';
 import { selectRouterQueryParamFilters, selectRouterQueryParams, selectRouterState } from '../core/store/router';
 import { selectAllResources, selectDisplayViewByTypes, selectResourceSelected } from '../core/store/sdr';
-import { selectActiveThemeOrganizationId } from '../core/store/theme';
+import { selectActiveThemeOrganization, selectActiveThemeOrganizationId } from '../core/store/theme';
 import { fadeIn } from '../shared/utilities/animation.utility';
 import { getFilterField, getFilterValue, getQueryParamsForFacets, removeFilterFromQueryParams, resetFiltersInQueryParams, showClearFilters, showFilter } from '../shared/utilities/view.utility';
 
@@ -38,6 +38,8 @@ export class DataAndAnalyticsComponent implements OnInit {
   public dataAndAnalyticsViews: Observable<DataAndAnalyticsView[]>;
 
   public organization: Observable<Individual>;
+
+  public themeOrganization: Observable<string>;
 
   public themeOrganizationId: Observable<string>;
 
@@ -135,6 +137,12 @@ export class DataAndAnalyticsComponent implements OnInit {
       'Program',
       'University'
     ]);
+
+    this.themeOrganization = this.store.pipe(
+      select(selectActiveThemeOrganization),
+      filter(name => !!name),
+      take(1)
+    );
 
     this.themeOrganizationId = this.store.pipe(
       select(selectActiveThemeOrganizationId),
