@@ -3,10 +3,12 @@ import { Params } from '@angular/router';
 import { Boostable, Direction, Facetable, Filterable, Highlightable, Pageable, SdrRequest, Sort } from '../../core/model/request';
 import { Queryable } from '../../core/model/request/sdr.request';
 import { SdrFacetEntry } from '../../core/model/sdr';
-import { Facet, FacetType, OpKey } from '../../core/model/view';
+import { Facet, FacetType, Filter, OpKey } from '../../core/model/view';
 import { CustomRouterState } from '../../core/store/router/router.reducer';
 
 export const FILTER_VALUE_DELIMITER = ';;';
+
+export const hasFilter = (filters: string, filter: string): boolean => filters?.trim().split(',').find(f => f === filter) !== undefined;
 
 export const buildDateYearFilterValue = (facetEntry: SdrFacetEntry): string => {
   const date = new Date(facetEntry.value);
@@ -22,11 +24,19 @@ export const buildNumberRangeFilterValue = (facet: Facet, facetEntry: SdrFacetEn
   return `[${from} TO ${to}]`;
 };
 
-export const getFacetFilterLabel = (facet: Facet, facetEntry: SdrFacetEntry): string => {
+export const getFacetEntryLabel = (facet: Facet, facetEntry: SdrFacetEntry): string => {
   let label = facetEntry.value;
   if (facet.type === FacetType.NUMBER_RANGE) {
     label = buildNumberRangeFilterValue(facet, facetEntry);
     label = label.toLowerCase().substring(1, label.length - 1);
+  }
+  return label;
+};
+
+export const getFacetFilterLabel = (facet: Facet, filter: Filter): string => {
+  let label = filter.value;
+  if (facet.type === FacetType.DATE_YEAR) {
+    label = new Date(label.slice(1, label.indexOf("TO")).trim()).getUTCFullYear().toString();
   }
   return label;
 };

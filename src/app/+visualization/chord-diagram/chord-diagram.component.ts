@@ -1,5 +1,6 @@
 import { isPlatformServer } from '@angular/common';
-import { Component, Inject, Input, OnChanges, PLATFORM_ID, SimpleChanges } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Inject, Input, OnChanges, PLATFORM_ID, SimpleChanges } from '@angular/core';
+
 import { Router } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
 
@@ -13,6 +14,7 @@ import { id } from '../../shared/utilities/id.utility';
   selector: 'scholars-chord-diagram',
   templateUrl: './chord-diagram.component.html',
   styleUrls: ['./chord-diagram.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ChordDiagramComponent implements OnChanges {
 

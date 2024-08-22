@@ -1,5 +1,5 @@
 import { isPlatformServer } from '@angular/common';
-import { Component, Inject, Input, PLATFORM_ID } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Inject, Input, PLATFORM_ID } from '@angular/core';
 
 import * as d3 from 'd3';
 
@@ -15,7 +15,8 @@ export interface BarplotInput {
 @Component({
   selector: 'scholars-barplot',
   templateUrl: './barplot.component.html',
-  styleUrls: ['./barplot.component.scss']
+  styleUrls: ['./barplot.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class BarplotComponent {
 
@@ -27,6 +28,9 @@ export class BarplotComponent {
 
   @Input()
   public maxOverride: number;
+
+  @Input()
+  public lineColor: string;
 
   @Input()
   public input: Observable<BarplotInput>;
@@ -64,7 +68,7 @@ export class BarplotComponent {
       const data = [...input.data].reverse();
 
       if (index === 0) {
-        const max = !!this.maxOverride ? this.maxOverride : d3.max(data.map((d: any) => d.value));
+        const max = this.maxOverride ? this.maxOverride : d3.max(data.map((d: any) => d.value));
 
         // append the svg object to the body of the page
         svg = d3.select(`#${this.id}`)
@@ -88,7 +92,7 @@ export class BarplotComponent {
         // bottom axis
         svg.append('g')
           .attr('transform', `translate(5,${height + 15})`)
-          .call(d3.axisBottom(researcherScale).ticks(max / 500).tickSize(0))
+          .call(d3.axisBottom(researcherScale).ticks(this.getTicks(max)).tickSize(0))
           .call(g => g.select('.domain').remove())
           .selectAll('text')
           .style('text-anchor', 'end');
@@ -111,14 +115,16 @@ export class BarplotComponent {
           .attr('y', (d) => ageGroupScale(d.label))
           .attr('width', (d) => researcherScale(d.value))
           .attr('height', ageGroupScale.bandwidth())
-          .attr('fill', 'steelblue');
+          .attr('fill', 'lightgray')
+          .style("stroke", "gray")
+          .style("stroke-width", "1px");
 
         bar.append('text')
           .attr('x', (d) => researcherScale(d.value) + 5)
           .attr('y', (d) => ageGroupScale(d.label) + (ageGroupScale.bandwidth() / 2))
           .style('font', '11px')
           .style('font-family', '"Lato", Calibri, Arial, sans-serif')
-          .attr('fill', 'steelblue')
+          .attr('fill', 'gray')
           .text((d) => d.value);
 
         svg.append("text")
@@ -136,7 +142,7 @@ export class BarplotComponent {
           .style("text-anchor", "middle")
           .style('font', '11px')
           .style('font-family', '"Lato", Calibri, Arial, sans-serif')
-          .attr('fill', 'steelblue')
+          .attr('fill', 'gray')
           .text(input.label);
 
       } else {
@@ -160,7 +166,7 @@ export class BarplotComponent {
         svg.append('path')
           .datum(data)
           .attr('fill', 'none')
-          .attr('stroke', 'orange')
+          .attr('stroke', this.lineColor)
           .attr('stroke-width', 1.25)
           .attr('d', d3.line()
             .x(function (d, i) {
@@ -183,8 +189,8 @@ export class BarplotComponent {
           .attr('cy', (d) => {
             return ageGroupScale(d.label) + (ageGroupScale.bandwidth() / 2);
           })
-          .attr('fill', 'orange')
-          .attr('stroke', 'orange')
+          .attr('fill', this.lineColor)
+          .attr('stroke', this.lineColor)
           .attr('r', 2);
 
         svg
@@ -197,7 +203,7 @@ export class BarplotComponent {
           .attr('y', (d) => ageGroupScale(d.label))
           .style('font', '11px')
           .style('font-family', '"Lato", Calibri, Arial, sans-serif')
-          .attr('fill', 'orange')
+          .attr('fill', this.lineColor)
           .text((d) => d.value);
 
         svg.append("text")
@@ -206,7 +212,7 @@ export class BarplotComponent {
           .style("text-anchor", "middle")
           .style('font', '11px')
           .style('font-family', '"Lato", Calibri, Arial, sans-serif')
-          .attr('fill', 'orange')
+          .attr('fill', this.lineColor)
           .text(input.label);
 
         subscription.unsubscribe();
@@ -214,6 +220,16 @@ export class BarplotComponent {
 
       index++;
     });
+  }
+
+  private getTicks = (max: number): number => {
+    let interval = Math.pow(10, max.toString().length - 1);
+
+    if (interval >= 10) {
+      interval /= 2;
+    }
+
+    return max / interval;
   }
 
 }

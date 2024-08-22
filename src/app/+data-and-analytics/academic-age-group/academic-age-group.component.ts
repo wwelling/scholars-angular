@@ -1,5 +1,5 @@
 import { isPlatformServer } from '@angular/common';
-import { Component, EventEmitter, Inject, Input, OnChanges, OnInit, Output, PLATFORM_ID, QueryList, SimpleChanges, ViewChildren } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, Inject, Input, OnChanges, OnInit, Output, PLATFORM_ID, QueryList, SimpleChanges, ViewChildren } from '@angular/core';
 import { Store, select } from '@ngrx/store';
 import { Observable, Subject, filter, map, tap } from 'rxjs';
 
@@ -11,7 +11,9 @@ import { DialogService } from '../../core/service/dialog.service';
 import { AppState } from '../../core/store';
 import { selectResourcesAcademicAge } from '../../core/store/sdr';
 import { AcademicAge } from '../../core/store/sdr/sdr.reducer';
+import { selectActiveThemeVariant } from '../../core/store/theme';
 import { fadeIn } from '../../shared/utilities/animation.utility';
+import { getFacetFilterLabel } from '../../shared/utilities/discovery.utility';
 import { BarplotComponent, BarplotInput } from './barplot/barplot.component';
 
 import * as fromRouter from '../../core/store/router/router.actions';
@@ -34,6 +36,7 @@ const apk = 'Average publications';
   templateUrl: './academic-age-group.component.html',
   styleUrls: ['./academic-age-group.component.scss'],
   animations: [fadeIn],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AcademicAgeGroupComponent implements OnInit, OnChanges {
 
@@ -64,7 +67,8 @@ export class AcademicAgeGroupComponent implements OnInit, OnChanges {
   @ViewChildren(BarplotComponent)
   private barplots: QueryList<BarplotComponent>;
 
-  public maxOverride: Subject<number>;
+  // TODO: get from dataAndAnalyticsView
+  // public maxOverride: Subject<number>;
 
   public mean: Subject<number>;
 
@@ -74,6 +78,8 @@ export class AcademicAgeGroupComponent implements OnInit, OnChanges {
 
   public averagePubRateAcademicAge: Observable<BarplotInput>;
 
+  public primaryThemeColor: Observable<string>;
+
   private sidebarMenuSections: { [key: string]: { facet: Facet, index: number } };
 
   constructor(
@@ -82,7 +88,7 @@ export class AcademicAgeGroupComponent implements OnInit, OnChanges {
     private dialog: DialogService,
   ) {
     this.labelEvent = new EventEmitter<string>();
-    this.maxOverride = new Subject<number>();
+    // this.maxOverride = new Subject<number>();
     this.mean = new Subject<number>();
     this.median = new Subject<number>();
     this.sidebarMenuSections = {};
@@ -127,6 +133,10 @@ export class AcademicAgeGroupComponent implements OnInit, OnChanges {
       filter((ra: AcademicAge) => !!ra && (ra.label === rk || ra.label === apk)),
       map(academicAgeGroupToBarplotInput)
     );
+
+    this.primaryThemeColor = this.store.pipe(
+      select(selectActiveThemeVariant('--primary'))
+    );
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -137,57 +147,61 @@ export class AcademicAgeGroupComponent implements OnInit, OnChanges {
     setTimeout(() => {
       const additionalFilters = [];
 
-      if (!!filters) {
-        if (!!filters.previousValue) {
-          filters.previousValue.forEach((entry: any) => {
-            if (filters.currentValue.indexOf(entry) === -1) {
-              const section = this.sidebarMenuSections[entry.field];
-              if (!!section) {
+      if (filters) {
+        if (filters.previousValue) {
+          filters.previousValue.forEach((previousFilter: any) => {
+            if (filters.currentValue.indexOf(previousFilter) === -1) {
+              const section = this.sidebarMenuSections[previousFilter.field];
+              if (section) {
                 this.store.dispatch(new fromSidebar.RemoveSectionAction({
                   sectionIndex: section.index,
-                  itemLabel: entry.value,
-                  itemField: entry.field,
+                  itemLabel: getFacetFilterLabel(section.facet, previousFilter),
+                  itemField: previousFilter.field,
                 }));
               }
             }
           });
         }
 
-        filters.currentValue.forEach((entry: any) => {
-          if (filters.previousValue === undefined || filters.previousValue.indexOf(entry) === -1) {
-            const section = this.sidebarMenuSections[entry.field];
-            if (!!section) {
-              const remove = {};
-              remove[entry.field]
+        filters.currentValue.forEach((currentFilter: any) => {
+          if (filters.previousValue === undefined || filters.previousValue.indexOf(currentFilter) === -1) {
+            const section = this.sidebarMenuSections[currentFilter.field];
+            if (section) {
               this.store.dispatch(new fromSidebar.AddSectionItemAction({
                 sectionIndex: section.index,
                 sectionItem: {
                   type: SidebarItemType.ACTION,
-                  label: entry.value,
+                  label: getFacetFilterLabel(section.facet, currentFilter),
                   selected: true,
-                  action: new fromRouter.RemoveFilter({ filter: entry }),
+                  action: new fromRouter.RemoveFilter({ filter: currentFilter }),
                 }
               }));
             }
           }
+          additionalFilters.push(currentFilter);
         });
 
-        additionalFilters.push(filters.currentValue);
-        additionalFilters.shift();
       }
+
+      // if (this.organization.id === this.defaultId) {
+      //   this.maxOverride.next(3000);
+      // } else {
+      //   this.maxOverride.next(undefined);
+      // }
 
       this.barplots.forEach(barplot => barplot.draw());
 
-      if (this.organization.id === this.defaultId) {
-        this.maxOverride.next(3000);
-      }
-
       if (this.organization.id !== this.defaultId && !!this.organization.name) {
-        additionalFilters.push({
-          field: 'positionOrganization',
+
+        const actualFilter = {
+          field: 'organizations',
           value: this.organization.name,
           opKey: OpKey.EQUALS
-        });
+        };
+
+        if (additionalFilters.indexOf(actualFilter) === -1) {
+          additionalFilters.push(actualFilter);
+        }
       }
 
       this.store.dispatch(

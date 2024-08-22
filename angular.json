@@ -31,8 +31,7 @@
             ],
             "scripts": [
               "src/assets/scripts/badge.js",
-              "src/assets/scripts/embed.js",
-              "src/assets/scripts/widget.js"
+              "src/assets/scripts/embed.js"
             ],
             "allowedCommonJsDependencies": [
               "handlebars/dist/handlebars"
@@ -108,8 +107,7 @@
             ],
             "scripts": [
               "src/assets/scripts/badge.js",
-              "src/assets/scripts/embed.js",
-              "src/assets/scripts/widget.js"
+              "src/assets/scripts/embed.js"
             ]
           }
         },

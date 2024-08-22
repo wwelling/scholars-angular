@@ -28,18 +28,15 @@ export class VisualizationComponent implements OnInit {
     this.individual = this.route.data.pipe(map(data => data.individual));
 
     this.route.data.subscribe(data => {
-      if (data.individual && data.individual.id) {
-        // on first defined individual, get discovery view
+      if (data?.individual?.id) {
         this.discoveryView = this.store.pipe(
           select(selectResourceById('individual', data.individual.id)),
           filter((individual: Individual) => individual !== undefined),
           take(1),
-          switchMap((individual: Individual) => {
-            return this.store.pipe(
-              select(selectDiscoveryViewByClass(individual.class)),
-              filter((view: DiscoveryView) => view !== undefined)
-            );
-          })
+          switchMap((individual: Individual) => this.store.pipe(
+            select(selectDiscoveryViewByClass(individual.class)),
+            filter((view: DiscoveryView) => view !== undefined)
+          ))
         );
       }
     });

@@ -43,6 +43,7 @@ export interface Export {
 export interface Facet {
   readonly name: string;
   readonly field: string;
+  readonly opKey: OpKey;
   readonly type: FacetType;
   readonly pageSize: number;
   readonly pageNumber: number;

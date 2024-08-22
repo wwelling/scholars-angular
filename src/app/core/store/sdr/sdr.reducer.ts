@@ -47,6 +47,7 @@ export interface QuantityDistribution {
 }
 
 export interface SdrState<R extends SdrResource> extends EntityState<R> {
+  selected: R
   page: SdrPage;
   facets: SdrFacet[];
   counts: {};
@@ -55,6 +56,7 @@ export interface SdrState<R extends SdrResource> extends EntityState<R> {
   dataNetwork: DataNetwork;
   academicAge: AcademicAge;
   quantityDistribution: QuantityDistribution;
+  selecting: boolean;
   counting: boolean;
   loading: boolean;
   dereferencing: boolean;
@@ -70,6 +72,7 @@ export const getSdrAdapter = <R extends SdrResource>(key: string) => {
 
 export const getSdrInitialState = <R extends SdrResource>(key: string) => {
   return getSdrAdapter<R>(key).getInitialState({
+    selected: undefined,
     page: undefined,
     facets: [],
     counts: {},
@@ -78,6 +81,7 @@ export const getSdrInitialState = <R extends SdrResource>(key: string) => {
     dataNetwork: undefined,
     academicAge: undefined,
     quantityDistribution: undefined,
+    selecting: false,
     counting: false,
     loading: false,
     dereferencing: false,
@@ -169,6 +173,23 @@ export const getSdrReducer = <R extends SdrResource>(name: string, additionalCon
   };
   return (state = getSdrInitialState<R>(keys[name]), action: SdrActions): SdrState<R> => {
     switch (action.type) {
+      case getSdrAction(SdrActionTypes.SELECT_RESOURCE, name):
+        return {
+          ...state,
+          selecting: true
+        }
+      case getSdrAction(SdrActionTypes.SELECT_RESOURCE_SUCCESS, name):
+        return {
+          ...state,
+          selected: getResource(action, name),
+          selecting: false
+        }
+      case getSdrAction(SdrActionTypes.SELECT_RESOURCE_FAILURE, name):
+        return {
+          ...state,
+          selected: null,
+          selecting: false
+        }
       case getSdrAction(SdrActionTypes.GET_ONE, name):
         return getSdrAdapter<R>(keys[name]).removeOne(action.payload.id, state);
       case getSdrAction(SdrActionTypes.GET_ALL, name):
@@ -253,6 +274,12 @@ export const getSdrReducer = <R extends SdrResource>(name: string, additionalCon
           }
         );
       case getSdrAction(SdrActionTypes.GET_ONE_SUCCESS, name):
+        return getSdrAdapter<R>(keys[name]).addOne(getResource(action, name), {
+          ...state,
+          links: state.links,
+          loading: false,
+          error: undefined,
+        });
       case getSdrAction(SdrActionTypes.FIND_BY_TYPES_IN_SUCCESS, name):
         return getSdrAdapter<R>(keys[name]).addOne(getResource(action, name), {
           ...state,
@@ -370,11 +397,13 @@ export const selectAll = <R extends SdrResource>(name: string) => getSdrAdapter<
 export const selectTotal = <R extends SdrResource>(name: string) => getSdrAdapter<R>(keys[name]).getSelectors().selectTotal;
 
 export const getError = <R extends SdrResource>(state: SdrState<R>) => state.error;
+export const isSelecting = <R extends SdrResource>(state: SdrState<R>) => state.selecting;
 export const isLoading = <R extends SdrResource>(state: SdrState<R>) => state.loading;
 export const isDereferencing = <R extends SdrResource>(state: SdrState<R>) => state.dereferencing;
 export const isUpdating = <R extends SdrResource>(state: SdrState<R>) => state.updating;
 export const isCounting = <R extends SdrResource>(state: SdrState<R>) => state.counting;
 
+export const getSelected = <R extends SdrResource>(state: SdrState<R>) => state.selected;
 export const getPage = <R extends SdrResource>(state: SdrState<R>) => state.page;
 export const getCounts = <R extends SdrResource>(state: SdrState<R>) => state.counts;
 export const getCountByLabel = (label: string) => <R extends SdrResource>(state: SdrState<R>) => state.counts[label];
