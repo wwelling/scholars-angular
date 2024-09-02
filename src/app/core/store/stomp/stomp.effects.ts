@@ -14,7 +14,12 @@ import * as fromStomp from './stomp.actions';
 @Injectable()
 export class StompEffects implements OnInitEffects {
 
-  constructor(private actions: Actions, private store: Store<AppState>, private stomp: StompService, private alert: AlertService) {
+  constructor(
+    private actions: Actions,
+    private store: Store<AppState>,
+    private stomp: StompService,
+    private alert: AlertService
+  ) {
 
   }
 
@@ -36,17 +41,10 @@ export class StompEffects implements OnInitEffects {
   disconnect = createEffect(() => this.actions.pipe(
     ofType(fromStomp.StompActionTypes.DISCONNECT),
     map((action: fromStomp.DisconnectAction) => action.payload),
-    withLatestFrom(this.store),
-    switchMap(([payload, state]) => {
-      const reconnect = payload.reconnect;
-      state.stomp.subscriptions.forEach((subscription: StompSubscription, channel: string) => {
-        subscription.unsubscribe();
-      });
-      return this.stomp.disconnect().pipe(
-        map(() => new fromStomp.DisconnectSuccessAction({ reconnect })),
-        catchError((response) => scheduled([new fromStomp.DisconnectFailureAction({ response })], asapScheduler))
-      );
-    })
+    switchMap((payload) => this.stomp.disconnect().pipe(
+      map(() => new fromStomp.DisconnectSuccessAction({ reconnect: payload.reconnect })),
+      catchError((response) => scheduled([new fromStomp.DisconnectFailureAction({ response })], asapScheduler))
+    ))
   ));
 
   disconnectSuccess = createEffect(() => this.actions.pipe(
@@ -66,24 +64,18 @@ export class StompEffects implements OnInitEffects {
     map((action: fromStomp.SubscribeAction) => action.payload),
     mergeMap((payload: { channel: string; handle: () => Observable<any> }) =>
       this.stomp.subscribe(payload.channel, payload.handle).pipe(
-        map(
-          (subscription: StompSubscription) =>
-            new fromStomp.SubscribeSuccessAction({
-              channel: payload.channel,
-              subscription,
-            })
-        ),
+        map((subscription: StompSubscription) =>
+          new fromStomp.SubscribeSuccessAction({
+            channel: payload.channel,
+            subscription,
+          })),
         catchError((response) =>
-          scheduled(
-            [
-              new fromStomp.SubscribeFailureAction({
-                channel: payload.channel,
-                response,
-              }),
-            ],
-            asapScheduler
-          )
-        )
+          scheduled([
+            new fromStomp.SubscribeFailureAction({
+              channel: payload.channel,
+              response,
+            }),
+          ], asapScheduler))
       )
     )
   ));
@@ -95,12 +87,9 @@ export class StompEffects implements OnInitEffects {
     filter(([action, store]) => !!store.stomp.subscriptions.get(action.payload.channel)),
     switchMap(([action, store]) =>
       scheduled([store.stomp.subscriptions.get(action.payload.channel).unsubscribe()], asapScheduler).pipe(
-        map(
-          () =>
-            new fromStomp.UnsubscribeSuccessAction({
-              channel: action.payload.channel,
-            })
-        ),
+        map(() => new fromStomp.UnsubscribeSuccessAction({
+          channel: action.payload.channel,
+        })),
         catchError((response) => scheduled([new fromStomp.UnsubscribeFailureAction({ response })], asapScheduler))
       )
     )
