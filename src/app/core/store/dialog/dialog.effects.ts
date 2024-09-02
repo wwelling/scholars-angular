@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Inject, Injectable, PLATFORM_ID } from '@angular/core';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { Store } from '@ngrx/store';
@@ -11,11 +11,17 @@ import { selectAlertsByLocation } from '../alert';
 
 import * as fromAlert from '../alert/alert.actions';
 import * as fromDialog from './dialog.actions';
+import { isPlatformBrowser } from '@angular/common';
 
 @Injectable()
 export class DialogEffects {
 
-  constructor(private actions: Actions, private store: Store<AppState>, private modalService: NgbModal) {
+  constructor(
+    @Inject(PLATFORM_ID) private platformId: string,
+    private actions: Actions,
+    private store: Store<AppState>,
+    private modalService: NgbModal
+  ) {
 
   }
 
@@ -24,23 +30,27 @@ export class DialogEffects {
     map((action: fromDialog.OpenDialogAction) => action.payload),
     map((payload: { dialog: Dialog }) => payload.dialog),
     map((dialog: Dialog) => {
-      const modal = this.modalService.open(dialog.ref.component, dialog.options);
-      for (const key in dialog.ref.inputs) {
-        if (dialog.ref.inputs.hasOwnProperty(key)) {
-          modal.componentInstance[key] = dialog.ref.inputs[key];
+      if (isPlatformBrowser(this.platformId)) {
+        const modal = this.modalService.open(dialog.ref.component, dialog.options);
+        for (const key in dialog.ref.inputs) {
+          if (dialog.ref.inputs.hasOwnProperty(key)) {
+            modal.componentInstance[key] = dialog.ref.inputs[key];
+          }
         }
+        this.store.dispatch(new fromDialog.DialogOpenedAction());
       }
-      return new fromDialog.DialogOpenedAction();
     })
-  ));
+  ), { dispatch: false });
 
   closeDialog = createEffect(() => this.actions.pipe(
     ofType(fromDialog.DialogActionTypes.CLOSE_DIALOG),
     map(() => {
-      this.modalService.dismissAll();
-      return new fromDialog.DialogClosedAction();
+      if (isPlatformBrowser(this.platformId)) {
+        this.modalService.dismissAll();
+        this.store.dispatch(new fromDialog.DialogClosedAction());
+      }
     })
-  ));
+  ), { dispatch: false });
 
   dismissDialogAlerts = createEffect(() => this.actions.pipe(
     ofType(fromDialog.DialogActionTypes.DIALOG_CLOSED),
