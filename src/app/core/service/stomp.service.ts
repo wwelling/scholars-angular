@@ -13,7 +13,10 @@ export class StompService {
 
   private client: Client;
 
-  constructor(@Inject(APP_CONFIG) private appConfig: AppConfig, @Inject(PLATFORM_ID) private platformId: string) {
+  constructor(
+    @Inject(APP_CONFIG) private appConfig: AppConfig,
+    @Inject(PLATFORM_ID) private platformId: string
+  ) {
 
   }
 
