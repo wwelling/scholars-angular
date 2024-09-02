@@ -2,7 +2,6 @@ import { Action } from '@ngrx/store';
 
 import { LoginRequest, RegistrationRequest } from '../../model/request';
 import { User } from '../../model/user';
-import { RouterNavigation } from '../router/router.actions';
 
 export enum AuthActionTypes {
   LOGIN = '[Auth] login',
@@ -91,11 +90,12 @@ export class CompleteRegistrationFailureAction implements Action {
 
 export class LogoutAction implements Action {
   readonly type = AuthActionTypes.LOGOUT;
+  constructor(public payload?: { reauthenticate: boolean }) { }
 }
 
 export class LogoutSuccessAction implements Action {
   readonly type = AuthActionTypes.LOGOUT_SUCCESS;
-  constructor(public payload: { message: string }) { }
+  constructor(public payload: { message: string, reauthenticate?: boolean }) { }
 }
 
 export class LogoutFailureAction implements Action {
@@ -128,7 +128,7 @@ export class SessionStatusAction implements Action {
 
 export class SetLoginRedirectAction implements Action {
   readonly type = AuthActionTypes.SET_LOGIN_REDIRECT;
-  constructor(public payload: { navigation: RouterNavigation }) { }
+  constructor(public payload: { url: string }) { }
 }
 
 export class UnsetLoginRedirectAction implements Action {

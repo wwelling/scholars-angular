@@ -21,13 +21,6 @@ export class RestService {
     return this.request.headers && this.request.headers['cookie'] && this.request.headers['cookie'].indexOf('SESSION') >= 0;
   }
 
-  public clearSession(): void {
-    if (isPlatformBrowser(this.platformId)) {
-      const expires = new Date('Thu, 01 Jan 1970 00:00:00 GMT');
-      document.cookie = 'SESSION=;expires=' + expires.toUTCString() + ';';
-    }
-  }
-
   public get<T>(url: string, options: any = {}, cache = true): Observable<T> {
     const request = JSON.stringify({ url, options });
     if (this.cache.has(request)) {

@@ -1,7 +1,7 @@
 import { isPlatformServer } from '@angular/common';
 import { Inject, Injectable, PLATFORM_ID } from '@angular/core';
-import { Client, IFrame, StompConfig, StompSubscription } from '@stomp/stompjs';
-import { Observable, Observer, asapScheduler, from, of, scheduled } from 'rxjs';
+import { Client, IFrame } from '@stomp/stompjs';
+import { Observable, asapScheduler, from, of, scheduled } from 'rxjs';
 
 import { environment } from '../../../environments/environment';
 import { APP_CONFIG, AppConfig } from '../../app.config';
@@ -63,6 +63,10 @@ export class StompService {
   }
 
   public unsubscribe(id: string): Observable<any> {
+    if (isPlatformServer(this.platformId)) {
+      return scheduled([false], asapScheduler);
+    }
+
     return scheduled([this.client.unsubscribe(id)], asapScheduler);
   }
 

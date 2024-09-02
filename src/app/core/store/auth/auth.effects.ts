@@ -11,6 +11,7 @@ import { Role, User } from '../../model/user';
 import { AlertService } from '../../service/alert.service';
 import { AuthService } from '../../service/auth.service';
 import { DialogService } from '../../service/dialog.service';
+import { selectRouterUrl } from '../router';
 import { selectIsStompConnected } from '../stomp';
 import { selectLoginRedirect, selectUser } from './';
 
@@ -28,7 +29,7 @@ export class AuthEffects implements OnInitEffects {
   }
 
   reconnect = createEffect(() => this.actions.pipe(
-    ofType(fromAuth.AuthActionTypes.LOGIN_SUCCESS, fromAuth.AuthActionTypes.LOGOUT_SUCCESS),
+    ofType(fromAuth.AuthActionTypes.LOGOUT_SUCCESS),
     map(() => new fromStomp.DisconnectAction({ reconnect: true }))
   ));
 
@@ -47,14 +48,16 @@ export class AuthEffects implements OnInitEffects {
     ofType(fromAuth.AuthActionTypes.LOGIN_SUCCESS),
     map((action: fromAuth.LoginSuccessAction) => action.payload),
     withLatestFrom(this.store.select(selectLoginRedirect)),
-    switchMap(([payload, redirect]) => {
+    switchMap(([payload, url]) => {
       const actions: Action[] = [
+        new fromStomp.DisconnectAction({ reconnect: true }),
         new fromAuth.GetUserSuccessAction({ user: payload.user }),
         new fromDialog.CloseDialogAction(),
         this.alert.loginSuccessAlert()
       ];
-      if (redirect !== undefined) {
-        actions.push(new fromRouter.Go(redirect));
+      if (url !== undefined) {
+        actions.push(new fromAuth.UnsetLoginRedirectAction());
+        actions.push(new fromRouter.Link({ url }));
       }
 
       return actions;
@@ -112,7 +115,7 @@ export class AuthEffects implements OnInitEffects {
   confirmRegistrationFailure = createEffect(() => this.actions.pipe(
     ofType(fromAuth.AuthActionTypes.CONFIRM_REGISTRATION_FAILURE),
     map((action: fromAuth.ConfirmRegistrationFailureAction) => action.payload),
-    switchMap((payload: { response: any }) => [new fromRouter.Go({ path: ['/'] }), this.alert.confirmRegistrationFailureAlert(payload)])
+    switchMap((payload: { response: any }) => [new fromRouter.Link({ url: '/' }), this.alert.confirmRegistrationFailureAlert(payload)])
   ));
 
   completeRegistration = createEffect(() => this.actions.pipe(
@@ -131,7 +134,7 @@ export class AuthEffects implements OnInitEffects {
     map((action: fromAuth.CompleteRegistrationSuccessAction) => action.payload),
     switchMap(() => [
       new fromDialog.CloseDialogAction(),
-      new fromRouter.Go({ path: ['/'] }),
+      new fromRouter.Link({ url: '/' }),
       this.alert.completeRegistrationSuccessAlert()
     ])
   ));
@@ -143,9 +146,10 @@ export class AuthEffects implements OnInitEffects {
 
   logout = createEffect(() => this.actions.pipe(
     ofType(fromAuth.AuthActionTypes.LOGOUT),
-    switchMap(() =>
+    map((action: fromAuth.LoginAction) => action.payload),
+    switchMap((payload: any) =>
       this.authService.logout().pipe(
-        map((response: any) => new fromAuth.LogoutSuccessAction({ message: response.message })),
+        map((response: any) => new fromAuth.LogoutSuccessAction({ message: response.message, ...payload })),
         catchError((response) => scheduled([new fromAuth.LogoutFailureAction({ response })], asapScheduler))
       )
     )
@@ -153,7 +157,24 @@ export class AuthEffects implements OnInitEffects {
 
   logoutSuccess = createEffect(() => this.actions.pipe(
     ofType(fromAuth.AuthActionTypes.LOGOUT_SUCCESS),
-    switchMap(() => [new fromSdr.ClearResourcesAction('Theme'), new fromSdr.ClearResourcesAction('User'), new fromRouter.Go({ path: ['/'] })])
+    map((action: fromAuth.LogoutSuccessAction) => action.payload),
+    withLatestFrom(this.store.select(selectRouterUrl)),
+    switchMap(([payload, url]: any) => {
+
+      const logoutActions: Action[] = [
+        new fromSdr.ClearResourcesAction('Theme'),
+        new fromSdr.ClearResourcesAction('User'),
+        new fromRouter.Link({ url: '/' })
+      ];
+
+      if (payload.reauthenticate) {
+        logoutActions.push(this.dialog.loginDialog());
+        logoutActions.push(new fromAuth.SetLoginRedirectAction({ url }));
+        logoutActions.push(this.alert.unauthorizedAlert());
+      }
+
+      return logoutActions;
+    })
   ));
 
   getUser = createEffect(() => this.actions.pipe(
@@ -218,8 +239,8 @@ export class AuthEffects implements OnInitEffects {
 
   getUserFailure = createEffect(() => this.actions.pipe(
     ofType(fromAuth.AuthActionTypes.GET_USER_FAILURE),
-    map(() => this.authService.clearSession())
-  ), { dispatch: false });
+    map(() => new fromAuth.LogoutAction({ reauthenticate: true }))
+  ));
 
   checkSession = createEffect(() => this.actions.pipe(
     ofType(fromAuth.AuthActionTypes.CHECK_SESSION),

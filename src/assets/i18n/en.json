@@ -149,7 +149,7 @@
       "SUBMIT_REGISTRATION_SUCCESS": "Confirm email to complete registration.",
       "CONFIRM_REGISTRATION_SUCCESS": "Set password to complete registration.",
       "COMPLETE_REGISTRATION_SUCCESS": "Registration complete. You can now login.",
-      "UNAUTHORIZED": "Unauthorized!",
+      "UNAUTHORIZED": "Unauthorized expired session. Please log back in.",
       "FORBIDDEN": "Forbidden! You must be logged in to access.",
       "CONNECT_FAILED": "Failed to connect.",
       "DISCONNECT_FAILED": "Failed to disconnect.",

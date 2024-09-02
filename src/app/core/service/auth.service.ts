@@ -18,10 +18,6 @@ export class AuthService {
     return this.restService.hasSession();
   }
 
-  public clearSession(): void {
-    this.restService.clearSession();
-  }
-
   public login(login: LoginRequest): Observable<User> {
     const headers = new HttpHeaders({
       'Content-Type': 'application/x-www-form-urlencoded',

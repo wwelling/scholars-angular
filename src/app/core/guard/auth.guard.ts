@@ -48,10 +48,7 @@ export class AuthGuard {
         map((user: User) => {
           const authorized = user ? roles.indexOf(Role[user.role]) >= 0 : false;
           if (!authorized) {
-            this.store.dispatch(new fromRouter.Go({ path: ['/'] }));
-            if (isPlatformBrowser(this.platformId)) {
-              this.store.dispatch(this.alert.unsubscribeFailureAlert());
-            }
+            this.store.dispatch(new fromRouter.Link({ url: '/' }));
           }
           return authorized;
         })) : scheduled([false], asapScheduler)));
@@ -62,11 +59,9 @@ export class AuthGuard {
       select(selectIsAuthenticated),
       map((authenticated: boolean) => {
         if (!authenticated) {
-          this.store.dispatch(new fromRouter.Go({ path: ['/'] }));
+          this.store.dispatch(new fromRouter.Link({ url: '/' }));
           if (isPlatformBrowser(this.platformId)) {
-            this.store.dispatch(new fromAuth.SetLoginRedirectAction({
-              navigation: { path: [url] },
-            }));
+            this.store.dispatch(new fromAuth.SetLoginRedirectAction({ url }));
             this.store.dispatch(this.dialog.loginDialog());
             this.store.dispatch(this.alert.forbiddenAlert());
           }
