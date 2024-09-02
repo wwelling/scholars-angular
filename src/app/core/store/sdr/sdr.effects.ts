@@ -3,8 +3,8 @@ import { Params } from '@angular/router';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { Store, select } from '@ngrx/store';
 import { TranslateService } from '@ngx-translate/core';
-import { Observable, asapScheduler, combineLatest, defer, of, scheduled } from 'rxjs';
-import { catchError, filter, map, mergeMap, skipWhile, switchMap, take, withLatestFrom } from 'rxjs/operators';
+import { asapScheduler, combineLatest, defer, of, scheduled } from 'rxjs';
+import { catchError, filter, map, mergeMap, switchMap, take, withLatestFrom } from 'rxjs/operators';
 
 import { AppState } from '../';
 
@@ -21,8 +21,6 @@ import { DialogService } from '../../service/dialog.service';
 import { StatsService } from '../../service/stats.service';
 import { selectRouterState } from '../router';
 import { CustomRouterState } from '../router/router.reducer';
-import { selectIsStompConnected, selectStompState } from '../stomp';
-import { StompState } from '../stomp/stomp.reducer';
 import { selectResourceById, selectSdrState } from './';
 import { AcademicAge, DataNetwork, QuantityDistribution, SdrState } from './sdr.reducer';
 
@@ -50,8 +48,6 @@ export class SdrEffects {
     this.injectRepos();
   }
 
-  // TODO: alerts should be in dialog location if a dialog is opened
-
   getAll = createEffect(() => this.actions.pipe(
     ofType(...this.buildActions(fromSdr.SdrActionTypes.GET_ALL)),
     mergeMap((action: fromSdr.GetAllResourcesAction) =>
@@ -78,13 +74,6 @@ export class SdrEffects {
         )
     )
   ));
-
-  getAllSuccess = createEffect(() => this.actions.pipe(
-    ofType(...this.buildActions(fromSdr.SdrActionTypes.GET_ALL_SUCCESS)),
-    switchMap((action: fromSdr.GetAllResourcesSuccessAction) => this.waitForStompConnection(action.name)),
-    withLatestFrom(this.store.pipe(select(selectStompState))),
-    map(([combination, stomp]) => this.subscribeToResourceQueue(combination[0], stomp))
-  ), { dispatch: false });
 
   getAllFailure = createEffect(() => this.actions.pipe(
     ofType(...this.buildActions(fromSdr.SdrActionTypes.GET_ALL_FAILURE)),
@@ -132,17 +121,14 @@ export class SdrEffects {
 
   getOneSuccess = createEffect(() => this.actions.pipe(
     ofType(...this.buildActions(fromSdr.SdrActionTypes.GET_ONE_SUCCESS)),
-    switchMap((action: fromSdr.GetOneResourceSuccessAction) => {
+    map((action: fromSdr.GetOneResourceSuccessAction) => {
       if (action.payload.select) {
         this.store.dispatch(new fromSdr.SelectResourceSuccessAction(action.name, { individual: action.payload.individual }));
       }
       if (!!action.payload.queue && action.payload.queue.length > 0) {
         this.store.dispatch(action.payload.queue.pop());
       }
-      return this.waitForStompConnection(action.name);
-    }),
-    withLatestFrom(this.store.pipe(select(selectStompState))),
-    map(([combination, stomp]) => this.subscribeToResourceQueue(combination[0], stomp))
+    })
   ), { dispatch: false });
 
   getOneFailure = createEffect(() => this.actions.pipe(
@@ -171,13 +157,6 @@ export class SdrEffects {
         )
     )
   ));
-
-  getNetworkSuccess = createEffect(() => this.actions.pipe(
-    ofType(...this.buildActions(fromSdr.SdrActionTypes.GET_NETWORK_SUCCESS)),
-    switchMap((action: fromSdr.GetNetworkSuccessAction) => this.waitForStompConnection(action.name)),
-    withLatestFrom(this.store.pipe(select(selectStompState))),
-    map(([combination, stomp]) => this.subscribeToResourceQueue(combination[0], stomp))
-  ), { dispatch: false });
 
   getNetworkFailure = createEffect(() => this.actions.pipe(
     ofType(...this.buildActions(fromSdr.SdrActionTypes.GET_NETWORK_FAILURE)),
@@ -208,9 +187,6 @@ export class SdrEffects {
 
   getAcademicAgeSuccess = createEffect(() => this.actions.pipe(
     ofType(...this.buildActions(fromSdr.SdrActionTypes.GET_ACADEMIC_AGE_SUCCESS)),
-    // TODO: determine utility and use of stomp connection for each success action dispatched (only applicable to asynchronous REST actions in which we want to switch to full duplex)
-    // switchMap((action: fromSdr.GetAcademicAgeSuccessAction) => this.waitForStompConnection(action.name)),
-    // withLatestFrom(this.store.pipe(select(selectStompState))),
     map((action: fromSdr.GetAcademicAgeSuccessAction) => {
       if (action.payload.queue.length > 0) {
         this.store.dispatch(action.payload.queue.pop());
@@ -247,9 +223,6 @@ export class SdrEffects {
 
   getQuantityDistributionSuccess = createEffect(() => this.actions.pipe(
     ofType(...this.buildActions(fromSdr.SdrActionTypes.GET_QUANTITY_DISTRIBUTION_SUCCESS)),
-    // TODO: determine utility and use of stomp connection for each success action dispatched (only applicable to asynchronous REST actions in which we want to switch to full duplex)
-    // switchMap((action: fromSdr.GetQuantityDistributionSuccessAction) => this.waitForStompConnection(action.name)),
-    // withLatestFrom(this.store.pipe(select(selectStompState))),
     map((action: fromSdr.GetQuantityDistributionSuccessAction) => {
       if (action.payload.queue.length > 0) {
         this.store.dispatch(action.payload.queue.pop());
@@ -289,13 +262,6 @@ export class SdrEffects {
     )
   ));
 
-  findByIdInSuccess = createEffect(() => this.actions.pipe(
-    ofType(...this.buildActions(fromSdr.SdrActionTypes.FIND_BY_ID_IN_SUCCESS)),
-    switchMap((action: fromSdr.FindByIdInResourceSuccessAction) => this.waitForStompConnection(action.name)),
-    withLatestFrom(this.store.pipe(select(selectStompState))),
-    map(([combination, stomp]) => this.subscribeToResourceQueue(combination[0], stomp))
-  ), { dispatch: false });
-
   findByIdInFailure = createEffect(() => this.actions.pipe(
     ofType(...this.buildActions(fromSdr.SdrActionTypes.FIND_BY_ID_IN_FAILURE)),
     map((action: fromSdr.FindByIdInResourceFailureAction) => this.alert.findByIdInFailureAlert(action.payload))
@@ -327,13 +293,6 @@ export class SdrEffects {
         )
     )
   ));
-
-  findByTypesInSuccess = createEffect(() => this.actions.pipe(
-    ofType(...this.buildActions(fromSdr.SdrActionTypes.FIND_BY_TYPES_IN_SUCCESS)),
-    switchMap((action: fromSdr.FindByTypesInResourceSuccessAction) => this.waitForStompConnection(action.name)),
-    withLatestFrom(this.store.pipe(select(selectStompState))),
-    map(([combination, stomp]) => this.subscribeToResourceQueue(combination[0], stomp))
-  ), { dispatch: false });
 
   findByTypesInFailure = createEffect(() => this.actions.pipe(
     ofType(...this.buildActions(fromSdr.SdrActionTypes.FIND_BY_TYPES_IN_FAILURE)),
@@ -403,13 +362,6 @@ export class SdrEffects {
         )
     )
   ));
-
-  pageSuccess = createEffect(() => this.actions.pipe(
-    ofType(...this.buildActions(fromSdr.SdrActionTypes.PAGE_SUCCESS)),
-    switchMap((action: fromSdr.PageResourcesSuccessAction) => this.waitForStompConnection(action.name)),
-    withLatestFrom(this.store.pipe(select(selectStompState))),
-    map(([combination, stomp]) => this.subscribeToResourceQueue(combination[0], stomp))
-  ), { dispatch: false });
 
   pageFailure = createEffect(() => this.actions.pipe(
     ofType(...this.buildActions(fromSdr.SdrActionTypes.PAGE_FAILURE)),
@@ -712,33 +664,6 @@ export class SdrEffects {
       }
     }
     return loadActions;
-  }
-
-  private waitForStompConnection(name: string): Observable<[string, boolean]> {
-    return combineLatest([
-      scheduled([name], asapScheduler),
-      this.store.pipe(
-        select(selectIsStompConnected),
-        skipWhile((connected: boolean) => !connected),
-        take(1)
-      ),
-    ]);
-  }
-
-  private subscribeToResourceQueue(name: string, stomp: StompState): void {
-    if (!stomp.subscriptions.has(`/queue/${name}`)) {
-      this.store.dispatch(
-        new fromStomp.SubscribeAction({
-          channel: `/queue/${name}`,
-          handle: (frame: any) => {
-            // TODO: conditionally reload all
-            if (frame.command === 'MESSAGE') {
-              console.log(frame);
-            }
-          },
-        })
-      );
-    }
   }
 
   private searchSuccessHandler(results: {
