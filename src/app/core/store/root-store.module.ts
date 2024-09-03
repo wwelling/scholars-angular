@@ -17,7 +17,6 @@ import { RouterEffects } from './router/router.effects';
 import { CustomRouterStateSerializer } from './router/router.reducer';
 import { SdrEffects } from './sdr/sdr.effects';
 import { SidebarEffects } from './sidebar/sidebar.effects';
-import { StompEffects } from './stomp/stomp.effects';
 import { ThemeEffects } from './theme/theme.effects';
 
 @NgModule({
@@ -39,7 +38,6 @@ import { ThemeEffects } from './theme/theme.effects';
       RootStoreEffects,
       RouterEffects,
       ThemeEffects,
-      StompEffects,
       SdrEffects,
       SidebarEffects,
       MetadataEffects,

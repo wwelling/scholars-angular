@@ -27,7 +27,6 @@ import { AcademicAge, DataNetwork, QuantityDistribution, SdrState } from './sdr.
 import * as fromDialog from '../dialog/dialog.actions';
 import * as fromRouter from '../router/router.actions';
 import * as fromSidebar from '../sidebar/sidebar.actions';
-import * as fromStomp from '../stomp/stomp.actions';
 import * as fromSdr from './sdr.actions';
 
 @Injectable()
@@ -493,11 +492,6 @@ export class SdrEffects {
   getRecentlyUpdatedFailure = createEffect(() => this.actions.pipe(
     ofType(...this.buildActions(fromSdr.SdrActionTypes.RECENTLY_UPDATED_FAILURE)),
     map((action: fromSdr.RecentlyUpdatedResourcesFailureAction) => this.alert.recentlyUpdatedFailureAlert(action.payload))
-  ));
-
-  clearResourceSubscription = createEffect(() => this.actions.pipe(
-    ofType(...this.buildActions(fromSdr.SdrActionTypes.CLEAR)),
-    map((action: fromSdr.ClearResourcesAction) => new fromStomp.UnsubscribeAction({ channel: `/queue/${action.name}` }))
   ));
 
   post = createEffect(() => this.actions.pipe(

@@ -1,25 +1,23 @@
 import { isPlatformBrowser } from '@angular/common';
 import { Inject, Injectable, PLATFORM_ID } from '@angular/core';
 import { Actions, createEffect, ofType, OnInitEffects } from '@ngrx/effects';
-import { Action, select, Store } from '@ngrx/store';
-import { asapScheduler, combineLatest, scheduled } from 'rxjs';
-import { catchError, map, skipWhile, switchMap, take, withLatestFrom } from 'rxjs/operators';
+import { Action, Store } from '@ngrx/store';
+import { asapScheduler, scheduled } from 'rxjs';
+import { catchError, map, switchMap, withLatestFrom } from 'rxjs/operators';
 
 import { AppState } from '../';
 import { RegistrationStep } from '../../../shared/dialog/registration/registration.component';
 import { LoginRequest, RegistrationRequest } from '../../model/request';
-import { Role, User } from '../../model/user';
+import { User } from '../../model/user';
 import { AlertService } from '../../service/alert.service';
 import { AuthService } from '../../service/auth.service';
 import { DialogService } from '../../service/dialog.service';
 import { selectRouterUrl } from '../router';
-import { selectIsStompConnected } from '../stomp';
-import { selectLoginRedirect, selectUser } from './';
+import { selectLoginRedirect } from './';
 
 import * as fromDialog from '../dialog/dialog.actions';
 import * as fromRouter from '../router/router.actions';
 import * as fromSdr from '../sdr/sdr.actions';
-import * as fromStomp from '../stomp/stomp.actions';
 import * as fromAuth from './auth.actions';
 
 @Injectable()
@@ -35,11 +33,6 @@ export class AuthEffects implements OnInitEffects {
   ) {
 
   }
-
-  reconnect = createEffect(() => this.actions.pipe(
-    ofType(fromAuth.AuthActionTypes.LOGOUT_SUCCESS),
-    map(() => new fromStomp.DisconnectAction({ reconnect: true }))
-  ));
 
   login = createEffect(() => this.actions.pipe(
     ofType(fromAuth.AuthActionTypes.LOGIN),
@@ -58,7 +51,6 @@ export class AuthEffects implements OnInitEffects {
     withLatestFrom(this.store.select(selectLoginRedirect)),
     switchMap(([payload, url]) => {
       const actions: Action[] = [
-        new fromStomp.DisconnectAction({ reconnect: true }),
         new fromAuth.GetUserSuccessAction({ user: payload.user }),
         new fromDialog.CloseDialogAction(),
         this.alert.loginSuccessAlert()
@@ -192,56 +184,6 @@ export class AuthEffects implements OnInitEffects {
         map((user: User) => new fromAuth.GetUserSuccessAction({ user })),
         catchError((response) => scheduled([new fromAuth.GetUserFailureAction({ response })], asapScheduler))
       )
-    )
-  ));
-
-  getUserSuccess = createEffect(() => this.actions.pipe(
-    ofType(fromAuth.AuthActionTypes.GET_USER_SUCCESS),
-    switchMap(() =>
-      combineLatest([
-        this.store.pipe(select(selectUser), take(1)),
-        this.store.pipe(
-          select(selectIsStompConnected),
-          skipWhile((connected: boolean) => !connected),
-          take(1)
-        ),
-      ])
-    ),
-    map(
-      ([user]) =>
-        new fromStomp.SubscribeAction({
-          channel: '/user/queue/users',
-          handle: (frame: any) => {
-            if (frame.command === 'MESSAGE') {
-              const body = JSON.parse(frame.body);
-              switch (body.action) {
-                case 'DELETE':
-                  this.store.dispatch(new fromAuth.LogoutAction());
-                  this.store.dispatch(this.dialog.notificationDialog('Your account has been deleted!'));
-                  break;
-                case 'UPDATE':
-                  if (body.entity.enabled) {
-                    this.store.dispatch(new fromAuth.GetUserSuccessAction({ user: body.entity }));
-                    const roles = Object.keys(Role);
-                    if (roles.indexOf(body.entity.role) < roles.indexOf(user.role)) {
-                      // TODO: request new session to avoid logging out
-                      this.store.dispatch(new fromAuth.LogoutAction());
-                      this.store.dispatch(this.dialog.notificationDialog('Your permissions have been reduced! Unfortunately, you must log in again.'));
-                    } else if (roles.indexOf(body.entity.role) > roles.indexOf(user.role)) {
-                      // TODO: request new session to avoid logging out
-                      this.store.dispatch(new fromAuth.LogoutAction());
-                      this.store.dispatch(this.dialog.notificationDialog('Your permissions have been elevated! Unfortunately, you must log in again.'));
-                    }
-                  } else {
-                    this.store.dispatch(new fromAuth.LogoutAction());
-                    this.store.dispatch(this.dialog.notificationDialog('Your account has been disabled!'));
-                  }
-                  break;
-                default:
-              }
-            }
-          },
-        })
     )
   ));
 

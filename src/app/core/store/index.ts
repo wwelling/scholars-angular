@@ -18,7 +18,6 @@ import * as fromMetadata from './metadata/metadata.reducer';
 import * as fromRootStore from './root-store.reducer';
 import * as fromSdr from './sdr/sdr.reducer';
 import * as fromSidebar from './sidebar/sidebar.reducer';
-import * as fromStomp from './stomp/stomp.reducer';
 import * as fromTheme from './theme/theme.reducer';
 
 export interface AppState {
@@ -29,7 +28,6 @@ export interface AppState {
   layout: fromLayout.LayoutState;
   metadata: fromMetadata.MetadataState;
   sidebar: fromSidebar.SidebarState;
-  stomp: fromStomp.StompState;
   theme: fromTheme.ThemeState;
   individual: fromSdr.SdrState<Individual>;
   themes: fromSdr.SdrState<Theme>;
@@ -55,7 +53,6 @@ export const reducers = (appConfig: AppConfig): ActionReducerMap<AppState> => {
     layout: fromLayout.reducer,
     metadata: fromMetadata.reducer,
     sidebar: fromSidebar.reducer,
-    stomp: fromStomp.reducer,
     theme: fromTheme.reducer,
     individual: fromSdr.getSdrReducer<Individual>('individual', additionalContext),
     themes: fromSdr.getSdrReducer<Theme>('themes', additionalContext),
