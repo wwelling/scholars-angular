@@ -7,6 +7,7 @@ import { TranslateModule } from '@ngx-translate/core';
 
 import { testAppConfig } from '../../../test.config';
 import { getRequest } from '../../app.browser.module';
+import { APP_CONFIG } from '../../app.config';
 import { Layout } from '../../core/model/view';
 import { ContainerType } from '../../core/model/view/data-and-analytics-view';
 import { Side } from '../../core/model/view/display-view';
@@ -39,6 +40,7 @@ describe('ProfileSummariesExportComponent', () => {
       ],
       providers: [
         { provide: REQUEST, useFactory: getRequest },
+        { provide: APP_CONFIG, useValue: testAppConfig },
         RestService
       ]
     }).compileComponents();
