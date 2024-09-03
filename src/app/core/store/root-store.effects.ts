@@ -21,7 +21,7 @@ export class RootStoreEffects implements OnInitEffects {
     if (isPlatformBrowser(this.platformId)) {
       const serializedState = this.transferState.get<string>(STORE_TRANSLATE_STATE, undefined);
 
-      if (!!serializedState) {
+      if (serializedState) {
         const state = JSON.parse(serializedState);
         this.store.dispatch(new fromStore.RehydrateAction({ state }));
         this.transferState.remove(STORE_TRANSLATE_STATE);
