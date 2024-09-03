@@ -739,7 +739,7 @@ export class SdrEffects {
                   parenthetical: facetEntry.count,
                   selected,
                   route: [],
-                  queryParams: Object.assign({}, route.queryParams)
+                  queryParams: { ...route.queryParams }
                 };
 
                 sidebarItem.queryParams.page = 1;
@@ -747,7 +747,7 @@ export class SdrEffects {
                 if (selected) {
                   sidebarSection.collapsed = false;
                   if (hasFilter(sidebarItem.queryParams.filters, sdrFacet.field)) {
-                    const queryParams: Params = Object.assign({}, sidebarItem.queryParams);
+                    const queryParams: Params = { ...sidebarItem.queryParams };
                     removeFilterFromQueryParams(queryParams, {
                       field: sdrFacet.field,
                       value: filterValue,
