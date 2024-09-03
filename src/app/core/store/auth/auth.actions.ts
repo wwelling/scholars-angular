@@ -23,6 +23,7 @@ export enum AuthActionTypes {
   GET_USER_SUCCESS = '[Auth] success getting user',
   GET_USER_FAILURE = '[Auth] failed getting user',
   CHECK_SESSION = '[Auth] check session',
+  CLEAR_SESSION = '[Auth] clear session',
   SESSION_STATUS = '[Auth] session status',
   SET_LOGIN_REDIRECT = '[Auth] set login redirect',
   UNSET_LOGIN_REDIRECT = '[Auth] unset login redirect',
@@ -121,6 +122,10 @@ export class CheckSessionAction implements Action {
   readonly type = AuthActionTypes.CHECK_SESSION;
 }
 
+export class ClearSessionAction implements Action {
+  readonly type = AuthActionTypes.CLEAR_SESSION;
+}
+
 export class SessionStatusAction implements Action {
   readonly type = AuthActionTypes.SESSION_STATUS;
   constructor(public payload: { authenticated: boolean }) { }
@@ -155,6 +160,7 @@ export type AuthActions =
   | GetUserSuccessAction
   | GetUserFailureAction
   | CheckSessionAction
+  | ClearSessionAction
   | SessionStatusAction
   | SetLoginRedirectAction
   | UnsetLoginRedirectAction;

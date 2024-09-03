@@ -36,7 +36,10 @@ export class LoginComponent implements OnInit {
       close: {
         type: DialogButtonType.OUTLINE_WARNING,
         label: this.translate.get('SHARED.DIALOG.LOGIN.CANCEL'),
-        action: () => this.store.dispatch(new fromDialog.CloseDialogAction()),
+        action: () => {
+          this.store.dispatch(new fromAuth.ClearSessionAction())
+          this.store.dispatch(new fromDialog.CloseDialogAction())
+        },
         disabled: () => this.store.pipe(select(selectIsLoggingIn)),
       },
       submit: {

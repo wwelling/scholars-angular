@@ -15,10 +15,14 @@ export class AuthService {
   constructor(
     @Inject(APP_CONFIG) private appConfig: AppConfig,
     private restService: RestService
-  ) {}
+  ) { }
 
   public hasSession(): boolean {
     return this.restService.hasSession();
+  }
+
+  public clearSession(): void {
+    this.restService.clearSession();
   }
 
   public login(login: LoginRequest): Observable<User> {

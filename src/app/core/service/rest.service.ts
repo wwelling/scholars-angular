@@ -1,5 +1,5 @@
 import { isPlatformBrowser, isPlatformServer } from '@angular/common';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Inject, Injectable, makeStateKey, PLATFORM_ID, TransferState } from '@angular/core';
 import { REQUEST } from '@nguniversal/express-engine/tokens';
 import { Observable, of } from 'rxjs';
@@ -33,6 +33,13 @@ export class RestService {
   public hasSession(): boolean {
     // tslint:disable-next-line: no-string-literal
     return this.request.headers && this.request.headers['cookie'] && this.request.headers['cookie'].indexOf('SESSION') >= 0;
+  }
+
+  public clearSession(): void {
+    if (isPlatformBrowser(this.platformId)) {
+      const expires = new Date('Thu, 01 Jan 1970 00:00:00 GMT');
+      document.cookie = 'SESSION=;expires=' + expires.toUTCString() + ';';
+    }
   }
 
   public get<T>(url: string, options: any = {}, cache = true): Observable<T> {

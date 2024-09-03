@@ -264,6 +264,11 @@ export class AuthEffects implements OnInitEffects {
     }))
   ));
 
+  clearSession = createEffect(() => this.actions.pipe(
+    ofType(fromAuth.AuthActionTypes.CLEAR_SESSION),
+    map(() => this.authService.clearSession())
+  ), { dispatch: false });
+
   sessionStatus = createEffect(() => this.actions.pipe(
     ofType(fromAuth.AuthActionTypes.SESSION_STATUS),
     map((action: fromAuth.SessionStatusAction) => action.payload),
