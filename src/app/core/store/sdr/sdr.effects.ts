@@ -3,7 +3,7 @@ import { Params } from '@angular/router';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { Store, select } from '@ngrx/store';
 import { TranslateService } from '@ngx-translate/core';
-import { asapScheduler, combineLatest, defer, of, scheduled } from 'rxjs';
+import { asapScheduler, combineLatest, defer, lastValueFrom, of, scheduled } from 'rxjs';
 import { catchError, filter, map, mergeMap, switchMap, take, withLatestFrom } from 'rxjs/operators';
 
 import { AppState } from '../';
@@ -674,7 +674,7 @@ export class SdrEffects {
   }): void {
     const { action, route, directory, discovery } = results;
     if (route.queryParams.collection) {
-      this.stats.collect(route.queryParams).toPromise().then((data: any) => {
+      lastValueFrom(this.stats.collect(route.queryParams)).then((data: any) => {
         if (data) {
           // do nothing
         }
