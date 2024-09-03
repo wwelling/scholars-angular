@@ -1,4 +1,4 @@
-import { isPlatformBrowser, isPlatformServer } from '@angular/common';
+import { isPlatformServer } from '@angular/common';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Inject, Injectable, PLATFORM_ID } from '@angular/core';
 import { REQUEST } from '@nguniversal/express-engine/tokens';
@@ -12,7 +12,11 @@ export class RestService {
 
   private cache: Map<string, any>;
 
-  constructor(private http: HttpClient, @Inject(PLATFORM_ID) private platformId: string, @Inject(REQUEST) private request: any) {
+  constructor(
+    @Inject(PLATFORM_ID) private platformId: string,
+    @Inject(REQUEST) private request: any,
+    private http: HttpClient,
+  ) {
     this.cache = new Map<string, any>();
   }
 
