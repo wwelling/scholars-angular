@@ -84,7 +84,6 @@ export class RestService {
   }
 
   private processRequest<T>(url: string, options: any, callback: (url: string, options: any) => Observable<T>) {
-    this.preProcessOptions(options);
     return callback(url, options).pipe(
       map((response: T) => {
         return response;
@@ -93,30 +92,11 @@ export class RestService {
   }
 
   private processRequestWithData<T>(url: string, body: any, options: any, callback: (url: string, body: any, options: any) => Observable<T>) {
-    this.preProcessOptions(options);
     return callback(url, body, options).pipe(
       map((response: T) => {
         return response;
       })
     );
-  }
-
-  private preProcessOptions(options: any): void {
-    if (this.useSession()) {
-      if (!options.headers) {
-        options.headers = new HttpHeaders({
-          // tslint:disable-next-line: no-string-literal
-          cookie: this.request.headers['cookie'],
-        });
-      } else {
-        // tslint:disable-next-line: no-string-literal
-        options.headers = (options.headers as HttpHeaders).set('cookie', this.request.headers['cookie']);
-      }
-    }
-  }
-
-  private useSession(): boolean {
-    return isPlatformServer(this.platformId) && this.hasSession();
   }
 
 }
