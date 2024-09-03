@@ -5,6 +5,8 @@ import { REQUEST } from '@nguniversal/express-engine/tokens';
 import { Observable, of } from 'rxjs';
 import { map, tap } from 'rxjs/operators';
 
+import { APP_CONFIG, AppConfig } from '../../app.config';
+
 export const REST_CACHE_TRANSLATE_STATE = makeStateKey<any>('REST_CACHE_TRANSLATE_STATE');
 
 @Injectable({
@@ -15,6 +17,7 @@ export class RestService {
   private cache: any;
 
   constructor(
+    @Inject(APP_CONFIG) private appConfig: AppConfig,
     @Inject(PLATFORM_ID) private platformId: string,
     @Inject(REQUEST) private request: any,
     private http: HttpClient,
@@ -33,9 +36,9 @@ export class RestService {
   }
 
   public get<T>(url: string, options: any = {}, cache = true): Observable<T> {
-    const request = JSON.stringify({ url, options });
-    if (this.cache.hasOwnProperty(request)) {
-      return of(this.cache[request]);
+    const key = JSON.stringify({ url: url.replace(this.appConfig.serviceUrl, ''), options });
+    if (this.cache.hasOwnProperty(key)) {
+      return of(this.cache[key]);
     }
     // tslint:disable-next-line:no-shadowed-variable
     return this.processRequest<T>(url, options, (url: string, options: any): any => {
@@ -43,7 +46,7 @@ export class RestService {
     }).pipe(
       tap((response: T) => {
         if (cache) {
-          this.cache[request] = response;
+          this.cache[key] = response;
           if (isPlatformServer(this.platformId)) {
             this.transferState.set<any>(REST_CACHE_TRANSLATE_STATE, this.cache);
           }
