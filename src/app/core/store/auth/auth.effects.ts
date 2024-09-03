@@ -1,36 +1,38 @@
-import { Injectable } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
+import { Inject, Injectable, PLATFORM_ID } from '@angular/core';
 import { Actions, createEffect, ofType, OnInitEffects } from '@ngrx/effects';
-import { Action, select, Store } from '@ngrx/store';
-import { asapScheduler, combineLatest, scheduled } from 'rxjs';
-import { catchError, map, skipWhile, switchMap, take, withLatestFrom } from 'rxjs/operators';
+import { Action, Store } from '@ngrx/store';
+import { asapScheduler, scheduled } from 'rxjs';
+import { catchError, map, switchMap, withLatestFrom } from 'rxjs/operators';
 
 import { AppState } from '../';
 import { RegistrationStep } from '../../../shared/dialog/registration/registration.component';
 import { LoginRequest, RegistrationRequest } from '../../model/request';
-import { Role, User } from '../../model/user';
+import { User } from '../../model/user';
 import { AlertService } from '../../service/alert.service';
 import { AuthService } from '../../service/auth.service';
 import { DialogService } from '../../service/dialog.service';
-import { selectIsStompConnected } from '../stomp';
-import { selectLoginRedirect, selectUser } from './';
+import { selectRouterUrl } from '../router';
+import { selectLoginRedirect } from './';
 
 import * as fromDialog from '../dialog/dialog.actions';
 import * as fromRouter from '../router/router.actions';
 import * as fromSdr from '../sdr/sdr.actions';
-import * as fromStomp from '../stomp/stomp.actions';
 import * as fromAuth from './auth.actions';
 
 @Injectable()
 export class AuthEffects implements OnInitEffects {
 
-  constructor(private actions: Actions, private store: Store<AppState>, private alert: AlertService, private authService: AuthService, private dialog: DialogService) {
+  constructor(
+    @Inject(PLATFORM_ID) private platformId: string,
+    private actions: Actions,
+    private store: Store<AppState>,
+    private alert: AlertService,
+    private authService: AuthService,
+    private dialog: DialogService
+  ) {
 
   }
-
-  reconnect = createEffect(() => this.actions.pipe(
-    ofType(fromAuth.AuthActionTypes.LOGIN_SUCCESS, fromAuth.AuthActionTypes.LOGOUT_SUCCESS),
-    map(() => new fromStomp.DisconnectAction({ reconnect: true }))
-  ));
 
   login = createEffect(() => this.actions.pipe(
     ofType(fromAuth.AuthActionTypes.LOGIN),
@@ -47,14 +49,15 @@ export class AuthEffects implements OnInitEffects {
     ofType(fromAuth.AuthActionTypes.LOGIN_SUCCESS),
     map((action: fromAuth.LoginSuccessAction) => action.payload),
     withLatestFrom(this.store.select(selectLoginRedirect)),
-    switchMap(([payload, redirect]) => {
+    switchMap(([payload, url]) => {
       const actions: Action[] = [
         new fromAuth.GetUserSuccessAction({ user: payload.user }),
         new fromDialog.CloseDialogAction(),
         this.alert.loginSuccessAlert()
       ];
-      if (redirect !== undefined) {
-        actions.push(new fromRouter.Go(redirect));
+      if (url !== undefined) {
+        actions.push(new fromAuth.UnsetLoginRedirectAction());
+        actions.push(new fromRouter.Link({ url }));
       }
 
       return actions;
@@ -112,7 +115,7 @@ export class AuthEffects implements OnInitEffects {
   confirmRegistrationFailure = createEffect(() => this.actions.pipe(
     ofType(fromAuth.AuthActionTypes.CONFIRM_REGISTRATION_FAILURE),
     map((action: fromAuth.ConfirmRegistrationFailureAction) => action.payload),
-    switchMap((payload: { response: any }) => [new fromRouter.Go({ path: ['/'] }), this.alert.confirmRegistrationFailureAlert(payload)])
+    switchMap((payload: { response: any }) => [new fromRouter.Link({ url: '/' }), this.alert.confirmRegistrationFailureAlert(payload)])
   ));
 
   completeRegistration = createEffect(() => this.actions.pipe(
@@ -131,7 +134,7 @@ export class AuthEffects implements OnInitEffects {
     map((action: fromAuth.CompleteRegistrationSuccessAction) => action.payload),
     switchMap(() => [
       new fromDialog.CloseDialogAction(),
-      new fromRouter.Go({ path: ['/'] }),
+      new fromRouter.Link({ url: '/' }),
       this.alert.completeRegistrationSuccessAlert()
     ])
   ));
@@ -143,9 +146,10 @@ export class AuthEffects implements OnInitEffects {
 
   logout = createEffect(() => this.actions.pipe(
     ofType(fromAuth.AuthActionTypes.LOGOUT),
-    switchMap(() =>
+    map((action: fromAuth.LoginAction) => action.payload),
+    switchMap((payload: any) =>
       this.authService.logout().pipe(
-        map((response: any) => new fromAuth.LogoutSuccessAction({ message: response.message })),
+        map((response: any) => new fromAuth.LogoutSuccessAction({ message: response.message, ...payload })),
         catchError((response) => scheduled([new fromAuth.LogoutFailureAction({ response })], asapScheduler))
       )
     )
@@ -153,7 +157,24 @@ export class AuthEffects implements OnInitEffects {
 
   logoutSuccess = createEffect(() => this.actions.pipe(
     ofType(fromAuth.AuthActionTypes.LOGOUT_SUCCESS),
-    switchMap(() => [new fromSdr.ClearResourcesAction('Theme'), new fromSdr.ClearResourcesAction('User'), new fromRouter.Go({ path: ['/'] })])
+    map((action: fromAuth.LogoutSuccessAction) => action.payload),
+    withLatestFrom(this.store.select(selectRouterUrl)),
+    switchMap(([payload, url]: any) => {
+
+      const logoutActions: Action[] = [
+        new fromSdr.ClearResourcesAction('Theme'),
+        new fromSdr.ClearResourcesAction('User'),
+        new fromRouter.Link({ url: '/' })
+      ];
+
+      if (payload.reauthenticate) {
+        logoutActions.push(this.dialog.loginDialog());
+        logoutActions.push(new fromAuth.SetLoginRedirectAction({ url }));
+        logoutActions.push(this.alert.unauthorizedAlert());
+      }
+
+      return logoutActions;
+    })
   ));
 
   getUser = createEffect(() => this.actions.pipe(
@@ -166,70 +187,29 @@ export class AuthEffects implements OnInitEffects {
     )
   ));
 
-  getUserSuccess = createEffect(() => this.actions.pipe(
-    ofType(fromAuth.AuthActionTypes.GET_USER_SUCCESS),
-    switchMap(() =>
-      combineLatest([
-        this.store.pipe(select(selectUser), take(1)),
-        this.store.pipe(
-          select(selectIsStompConnected),
-          skipWhile((connected: boolean) => !connected),
-          take(1)
-        ),
-      ])
-    ),
-    map(
-      ([user]) =>
-        new fromStomp.SubscribeAction({
-          channel: '/user/queue/users',
-          handle: (frame: any) => {
-            if (frame.command === 'MESSAGE') {
-              const body = JSON.parse(frame.body);
-              switch (body.action) {
-                case 'DELETE':
-                  this.store.dispatch(new fromAuth.LogoutAction());
-                  this.store.dispatch(this.dialog.notificationDialog('Your account has been deleted!'));
-                  break;
-                case 'UPDATE':
-                  if (body.entity.enabled) {
-                    this.store.dispatch(new fromAuth.GetUserSuccessAction({ user: body.entity }));
-                    const roles = Object.keys(Role);
-                    if (roles.indexOf(body.entity.role) < roles.indexOf(user.role)) {
-                      // TODO: request new session to avoid logging out
-                      this.store.dispatch(new fromAuth.LogoutAction());
-                      this.store.dispatch(this.dialog.notificationDialog('Your permissions have been reduced! Unfortunately, you must log in again.'));
-                    } else if (roles.indexOf(body.entity.role) > roles.indexOf(user.role)) {
-                      // TODO: request new session to avoid logging out
-                      this.store.dispatch(new fromAuth.LogoutAction());
-                      this.store.dispatch(this.dialog.notificationDialog('Your permissions have been elevated! Unfortunately, you must log in again.'));
-                    }
-                  } else {
-                    this.store.dispatch(new fromAuth.LogoutAction());
-                    this.store.dispatch(this.dialog.notificationDialog('Your account has been disabled!'));
-                  }
-                  break;
-                default:
-              }
-            }
-          },
-        })
-    )
-  ));
-
   getUserFailure = createEffect(() => this.actions.pipe(
     ofType(fromAuth.AuthActionTypes.GET_USER_FAILURE),
-    map(() => this.authService.clearSession())
+    withLatestFrom(this.store.select(selectRouterUrl)),
+    map(([action, url]) => {
+      if (isPlatformBrowser(this.platformId)) {
+        this.store.dispatch(this.dialog.loginDialog());
+        this.store.dispatch(new fromAuth.SetLoginRedirectAction({ url }));
+        this.store.dispatch(this.alert.unauthorizedAlert());
+      }
+    })
   ), { dispatch: false });
 
   checkSession = createEffect(() => this.actions.pipe(
     ofType(fromAuth.AuthActionTypes.CHECK_SESSION),
-    map(
-      () =>
-        new fromAuth.SessionStatusAction({
-          authenticated: this.authService.hasSession(),
-        })
-    )
+    map(() => new fromAuth.SessionStatusAction({
+      authenticated: this.authService.hasSession(),
+    }))
   ));
+
+  clearSession = createEffect(() => this.actions.pipe(
+    ofType(fromAuth.AuthActionTypes.CLEAR_SESSION),
+    map(() => this.authService.clearSession())
+  ), { dispatch: false });
 
   sessionStatus = createEffect(() => this.actions.pipe(
     ofType(fromAuth.AuthActionTypes.SESSION_STATUS),

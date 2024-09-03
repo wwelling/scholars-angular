@@ -1,19 +1,33 @@
 import { isPlatformBrowser, isPlatformServer } from '@angular/common';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Inject, Injectable, PLATFORM_ID } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Inject, Injectable, makeStateKey, PLATFORM_ID, TransferState } from '@angular/core';
 import { REQUEST } from '@nguniversal/express-engine/tokens';
 import { Observable, of } from 'rxjs';
 import { map, tap } from 'rxjs/operators';
+
+import { APP_CONFIG, AppConfig } from '../../app.config';
+
+export const REST_CACHE_TRANSLATE_STATE = makeStateKey<any>('REST_CACHE_TRANSLATE_STATE');
 
 @Injectable({
   providedIn: 'root',
 })
 export class RestService {
 
-  private cache: Map<string, any>;
+  private cache: any;
 
-  constructor(private http: HttpClient, @Inject(PLATFORM_ID) private platformId: string, @Inject(REQUEST) private request: any) {
-    this.cache = new Map<string, any>();
+  constructor(
+    @Inject(APP_CONFIG) private appConfig: AppConfig,
+    @Inject(PLATFORM_ID) private platformId: string,
+    @Inject(REQUEST) private request: any,
+    private http: HttpClient,
+    private transferState: TransferState,
+  ) {
+    this.cache = isPlatformBrowser(this.platformId)
+      ? transferState.get<any>(REST_CACHE_TRANSLATE_STATE, {})
+      : {};
+
+    transferState.remove(REST_CACHE_TRANSLATE_STATE);
   }
 
   public hasSession(): boolean {
@@ -29,9 +43,9 @@ export class RestService {
   }
 
   public get<T>(url: string, options: any = {}, cache = true): Observable<T> {
-    const request = JSON.stringify({ url, options });
-    if (this.cache.has(request)) {
-      return of(this.cache.get(request));
+    const key = JSON.stringify({ url: url.replace(this.appConfig.serviceUrl, ''), options });
+    if (this.cache.hasOwnProperty(key)) {
+      return of(this.cache[key]);
     }
     // tslint:disable-next-line:no-shadowed-variable
     return this.processRequest<T>(url, options, (url: string, options: any): any => {
@@ -39,7 +53,10 @@ export class RestService {
     }).pipe(
       tap((response: T) => {
         if (cache) {
-          this.cache.set(request, response);
+          this.cache[key] = response;
+          if (isPlatformServer(this.platformId)) {
+            this.transferState.set<any>(REST_CACHE_TRANSLATE_STATE, this.cache);
+          }
         }
       })
     );
@@ -74,7 +91,6 @@ export class RestService {
   }
 
   private processRequest<T>(url: string, options: any, callback: (url: string, options: any) => Observable<T>) {
-    this.preProcessOptions(options);
     return callback(url, options).pipe(
       map((response: T) => {
         return response;
@@ -83,30 +99,11 @@ export class RestService {
   }
 
   private processRequestWithData<T>(url: string, body: any, options: any, callback: (url: string, body: any, options: any) => Observable<T>) {
-    this.preProcessOptions(options);
     return callback(url, body, options).pipe(
       map((response: T) => {
         return response;
       })
     );
-  }
-
-  private preProcessOptions(options: any): void {
-    if (this.useSession()) {
-      if (!options.headers) {
-        options.headers = new HttpHeaders({
-          // tslint:disable-next-line: no-string-literal
-          cookie: this.request.headers['cookie'],
-        });
-      } else {
-        // tslint:disable-next-line: no-string-literal
-        options.headers = (options.headers as HttpHeaders).set('cookie', this.request.headers['cookie']);
-      }
-    }
-  }
-
-  private useSession(): boolean {
-    return isPlatformServer(this.platformId) && this.hasSession();
   }
 
 }

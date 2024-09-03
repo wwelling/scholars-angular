@@ -1,6 +1,5 @@
 import { RegistrationRequest } from '../../model/request';
 import { User } from '../../model/user';
-import { RouterNavigation } from '../router/router.actions';
 import { AuthActions, AuthActionTypes } from './auth.actions';
 
 export interface AuthState {
@@ -12,7 +11,7 @@ export interface AuthState {
   completingRegistration: boolean;
   gettingUser: boolean;
   authenticated: boolean;
-  redirect: RouterNavigation;
+  redirect: string;
   user: User;
   registration: RegistrationRequest;
   error: any;
@@ -131,7 +130,6 @@ export function reducer(state = initialState, action: AuthActions): AuthState {
         user: action.payload.user,
       };
     case AuthActionTypes.GET_USER_FAILURE:
-      console.error(action);
       return {
         ...state,
         gettingUser: false,
@@ -160,7 +158,7 @@ export function reducer(state = initialState, action: AuthActions): AuthState {
     case AuthActionTypes.SET_LOGIN_REDIRECT:
       return {
         ...state,
-        redirect: action.payload.navigation,
+        redirect: action.payload.url,
       };
     case AuthActionTypes.UNSET_LOGIN_REDIRECT:
       return {

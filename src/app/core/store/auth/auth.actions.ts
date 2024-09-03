@@ -2,7 +2,6 @@ import { Action } from '@ngrx/store';
 
 import { LoginRequest, RegistrationRequest } from '../../model/request';
 import { User } from '../../model/user';
-import { RouterNavigation } from '../router/router.actions';
 
 export enum AuthActionTypes {
   LOGIN = '[Auth] login',
@@ -24,6 +23,7 @@ export enum AuthActionTypes {
   GET_USER_SUCCESS = '[Auth] success getting user',
   GET_USER_FAILURE = '[Auth] failed getting user',
   CHECK_SESSION = '[Auth] check session',
+  CLEAR_SESSION = '[Auth] clear session',
   SESSION_STATUS = '[Auth] session status',
   SET_LOGIN_REDIRECT = '[Auth] set login redirect',
   UNSET_LOGIN_REDIRECT = '[Auth] unset login redirect',
@@ -91,11 +91,12 @@ export class CompleteRegistrationFailureAction implements Action {
 
 export class LogoutAction implements Action {
   readonly type = AuthActionTypes.LOGOUT;
+  constructor(public payload?: { reauthenticate: boolean }) { }
 }
 
 export class LogoutSuccessAction implements Action {
   readonly type = AuthActionTypes.LOGOUT_SUCCESS;
-  constructor(public payload: { message: string }) { }
+  constructor(public payload: { message: string, reauthenticate?: boolean }) { }
 }
 
 export class LogoutFailureAction implements Action {
@@ -121,6 +122,10 @@ export class CheckSessionAction implements Action {
   readonly type = AuthActionTypes.CHECK_SESSION;
 }
 
+export class ClearSessionAction implements Action {
+  readonly type = AuthActionTypes.CLEAR_SESSION;
+}
+
 export class SessionStatusAction implements Action {
   readonly type = AuthActionTypes.SESSION_STATUS;
   constructor(public payload: { authenticated: boolean }) { }
@@ -128,7 +133,7 @@ export class SessionStatusAction implements Action {
 
 export class SetLoginRedirectAction implements Action {
   readonly type = AuthActionTypes.SET_LOGIN_REDIRECT;
-  constructor(public payload: { navigation: RouterNavigation }) { }
+  constructor(public payload: { url: string }) { }
 }
 
 export class UnsetLoginRedirectAction implements Action {
@@ -155,6 +160,7 @@ export type AuthActions =
   | GetUserSuccessAction
   | GetUserFailureAction
   | CheckSessionAction
+  | ClearSessionAction
   | SessionStatusAction
   | SetLoginRedirectAction
   | UnsetLoginRedirectAction;

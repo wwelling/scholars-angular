@@ -24,7 +24,7 @@ export class AlertComponent implements OnInit {
     this.alerts = this.store.pipe(select(selectAlertsByLocation(this.location)));
   }
 
-  public close(alert: Alert): void {
+  public onAlertClosed(alert: Alert): void {
     this.store.dispatch(new fromAlert.DismissAlertAction({ alert }));
   }
 

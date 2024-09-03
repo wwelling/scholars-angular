@@ -82,7 +82,7 @@ export class DirectoryComponent implements OnDestroy, OnInit {
   }
 
   public isActive(directoryView: DirectoryView, params: Params, option: string): boolean {
-    const queryParams: Params = Object.assign({}, params);
+    const queryParams: Params = { ...params };
     if (hasFilter(queryParams.filters, directoryView.index.field)) {
       return queryParams[`${directoryView.index.field}.filter`] === option;
     }
@@ -114,7 +114,7 @@ export class DirectoryComponent implements OnDestroy, OnInit {
   }
 
   public getDirectoryExportUrl(params: Params, directoryView: DirectoryView): string {
-    const queryParams: Params = Object.assign({}, params);
+    const queryParams: Params = { ...params };
     queryParams.facets = null;
     queryParams.collection = null;
     addExportToQueryParams(queryParams, directoryView);
@@ -124,13 +124,13 @@ export class DirectoryComponent implements OnDestroy, OnInit {
   }
 
   public getDirectoryQueryParamsRemovingFilter(params: Params, filterToRemove: Filter): Params {
-    const queryParams: Params = Object.assign({}, params);
+    const queryParams: Params = { ...params };
     removeFilterFromQueryParams(queryParams, filterToRemove);
     return queryParams;
   }
 
   public getDirectoryQueryParamsResetting(params: Params, directoryView: DirectoryView): Params {
-    const queryParams: Params = Object.assign({}, params);
+    const queryParams: Params = { ...params };
     if (hasFilter(queryParams.filters, directoryView.index.field)) {
       const filters = queryParams.filters.split(',')
         .map((field) => field.trim())
@@ -147,13 +147,13 @@ export class DirectoryComponent implements OnDestroy, OnInit {
   }
 
   public getDirectoryQueryParamsClearingFilters(params: Params, discoveryView: DiscoveryView): Params {
-    const queryParams: Params = Object.assign({}, params);
+    const queryParams: Params = { ...params };
     resetFiltersInQueryParams(queryParams, discoveryView);
     return queryParams;
   }
 
   public getDirectoryQueryParamsWithOption(params: Params, directoryView: DirectoryView, option: string): Params {
-    const queryParams: Params = Object.assign({}, params);
+    const queryParams: Params = { ...params };
     queryParams.page = 1;
     if (option) {
       queryParams[`${directoryView.index.field}.filter`] = option;

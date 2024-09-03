@@ -30,9 +30,9 @@ export class AuthGuard {
   public canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): Observable<boolean> {
     const roles = route.data.roles;
     return this.requiresAuthorization(roles).pipe(
-      switchMap((authorize: boolean) => {
-        return authorize ? this.isAuthorized(state.url, roles) : this.isAuthenticated(state.url);
-      })
+      switchMap((authorize: boolean) => authorize
+        ? this.isAuthorized(state.url, roles)
+        : this.isAuthenticated(state.url))
     );
   }
 
@@ -48,10 +48,7 @@ export class AuthGuard {
         map((user: User) => {
           const authorized = user ? roles.indexOf(Role[user.role]) >= 0 : false;
           if (!authorized) {
-            this.store.dispatch(new fromRouter.Go({ path: ['/'] }));
-            if (isPlatformBrowser(this.platformId)) {
-              this.store.dispatch(this.alert.unsubscribeFailureAlert());
-            }
+            this.store.dispatch(new fromRouter.Link({ url: '/' }));
           }
           return authorized;
         })) : scheduled([false], asapScheduler)));
@@ -62,11 +59,9 @@ export class AuthGuard {
       select(selectIsAuthenticated),
       map((authenticated: boolean) => {
         if (!authenticated) {
-          this.store.dispatch(new fromRouter.Go({ path: ['/'] }));
+          this.store.dispatch(new fromRouter.Link({ url: '/' }));
+          this.store.dispatch(new fromAuth.SetLoginRedirectAction({ url }));
           if (isPlatformBrowser(this.platformId)) {
-            this.store.dispatch(new fromAuth.SetLoginRedirectAction({
-              navigation: { path: [url] },
-            }));
             this.store.dispatch(this.dialog.loginDialog());
             this.store.dispatch(this.alert.forbiddenAlert());
           }

@@ -29,7 +29,10 @@ export class AppComponent implements OnInit {
 
   private isPlatformBrowser: boolean;
 
-  constructor(@Inject(PLATFORM_ID) platformId: string, private store: Store<AppState>) {
+  constructor(
+    @Inject(PLATFORM_ID) platformId: string,
+    private store: Store<AppState>
+  ) {
     initializeTemplateHelpers(environment.formalize);
     this.isPlatformBrowser = isPlatformBrowser(platformId);
   }

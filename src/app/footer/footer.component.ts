@@ -29,7 +29,12 @@ export class FooterComponent implements OnInit {
 
   public footer: Observable<Footer>;
 
-  constructor(private store: Store<AppState>, private dialog: DialogService) {}
+  constructor(
+    private store: Store<AppState>,
+    private dialog: DialogService
+  ) {
+
+  }
 
   ngOnInit() {
     this.isAuthenticated = this.store.pipe(select(selectIsAuthenticated));

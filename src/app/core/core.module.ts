@@ -10,7 +10,6 @@ import { DialogService } from './service/dialog.service';
 import { MetadataService } from './service/metadata.service';
 import { RestService } from './service/rest.service';
 import { StatsService } from './service/stats.service';
-import { StompService } from './service/stomp.service';
 import { ThemeService } from './service/theme.service';
 
 const MODULES = [
@@ -27,7 +26,6 @@ const PROVIDERS = [
   MetadataService,
   RestService,
   StatsService,
-  StompService,
   ThemeService,
   ThemeRepo,
   UserRepo
