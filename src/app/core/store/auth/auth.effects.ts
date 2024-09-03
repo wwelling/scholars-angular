@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Inject, Injectable, PLATFORM_ID } from '@angular/core';
 import { Actions, createEffect, ofType, OnInitEffects } from '@ngrx/effects';
 import { Action, select, Store } from '@ngrx/store';
 import { asapScheduler, combineLatest, scheduled } from 'rxjs';
@@ -20,11 +20,13 @@ import * as fromRouter from '../router/router.actions';
 import * as fromSdr from '../sdr/sdr.actions';
 import * as fromStomp from '../stomp/stomp.actions';
 import * as fromAuth from './auth.actions';
+import { isPlatformBrowser } from '@angular/common';
 
 @Injectable()
 export class AuthEffects implements OnInitEffects {
 
   constructor(
+    @Inject(PLATFORM_ID) private platformId: string,
     private actions: Actions,
     private store: Store<AppState>,
     private alert: AlertService,
@@ -245,17 +247,18 @@ export class AuthEffects implements OnInitEffects {
 
   getUserFailure = createEffect(() => this.actions.pipe(
     ofType(fromAuth.AuthActionTypes.GET_USER_FAILURE),
-    map(() => new fromAuth.LogoutAction({ reauthenticate: true }))
-  ));
+    map(() => {
+      if (isPlatformBrowser(this.platformId)) {
+        this.store.dispatch(new fromAuth.LogoutAction({ reauthenticate: true }));
+      }
+    })
+  ), { dispatch: false });
 
   checkSession = createEffect(() => this.actions.pipe(
     ofType(fromAuth.AuthActionTypes.CHECK_SESSION),
-    map(
-      () =>
-        new fromAuth.SessionStatusAction({
-          authenticated: this.authService.hasSession(),
-        })
-    )
+    map(() => new fromAuth.SessionStatusAction({
+      authenticated: this.authService.hasSession(),
+    }))
   ));
 
   sessionStatus = createEffect(() => this.actions.pipe(
