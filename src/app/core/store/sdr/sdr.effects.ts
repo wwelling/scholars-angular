@@ -406,11 +406,11 @@ export class SdrEffects {
         ),
         this.store.pipe(
           select(selectSdrState('directoryViews')),
-          filter((directory: SdrState<DirectoryView>) => directory !== undefined)
+          filter((directory: SdrState<DirectoryView>) => directory !== undefined && !directory.loading)
         ),
         this.store.pipe(
           select(selectSdrState('discoveryViews')),
-          filter((discovery: SdrState<DiscoveryView>) => discovery !== undefined)
+          filter((discovery: SdrState<DiscoveryView>) => discovery !== undefined && !discovery.loading)
         )
       ])
     ),
@@ -418,8 +418,8 @@ export class SdrEffects {
       return this.searchSuccessHandler({
         action: latest[0],
         route: latest[1].state,
-        directory: latest[2] as SdrState<DirectoryView>,
-        discovery: latest[3] as SdrState<DiscoveryView>
+        directory: latest[2],
+        discovery: latest[3]
       });
     })
   ), { dispatch: false });
