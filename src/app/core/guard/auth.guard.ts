@@ -30,9 +30,9 @@ export class AuthGuard {
   public canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): Observable<boolean> {
     const roles = route.data.roles;
     return this.requiresAuthorization(roles).pipe(
-      switchMap((authorize: boolean) => {
-        return authorize ? this.isAuthorized(state.url, roles) : this.isAuthenticated(state.url);
-      })
+      switchMap((authorize: boolean) => authorize
+        ? this.isAuthorized(state.url, roles)
+        : this.isAuthenticated(state.url))
     );
   }
 
