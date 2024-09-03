@@ -20,7 +20,11 @@ import * as fromDialog from '../../../core/store/dialog/dialog.actions';
 export class LoginComponent implements OnInit {
   public dialog: DialogControl;
 
-  constructor(private builder: UntypedFormBuilder, private translate: TranslateService, private store: Store<AppState>) {}
+  constructor(
+    private builder: UntypedFormBuilder,
+    private translate: TranslateService,
+    private store: Store<AppState>
+  ) {}
 
   ngOnInit() {
     this.dialog = {
