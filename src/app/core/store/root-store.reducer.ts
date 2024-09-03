@@ -12,13 +12,10 @@ function merge(from: any, into: any): any {
 
 export function universalMetaReducer(reducer) {
   return (state, action) => {
-    switch (action.type) {
-      case fromStore.StoreActionTypes.REHYDRATE:
-        const rehydrated = merge(state, action.payload.state);
-        return reducer(rehydrated, action);
-      default:
-        break;
+    if (action.type === fromStore.StoreActionTypes.REHYDRATE) {
+      return reducer(merge(state, action.payload.state), action);
     }
+
     return reducer(state, action);
   };
 }
