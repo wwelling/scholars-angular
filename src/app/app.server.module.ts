@@ -1,13 +1,14 @@
 import { APP_BASE_HREF, DOCUMENT } from '@angular/common';
-import { NgModule, TransferState } from '@angular/core';
+import { APP_BOOTSTRAP_LISTENER, NgModule, TransferState } from '@angular/core';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { ServerModule } from '@angular/platform-server';
 import { MissingTranslationHandler, TranslateLoader, TranslateModule } from '@ngx-translate/core';
 import { readFileSync } from 'fs';
-import { Observable, of } from 'rxjs';
+import { Observable, of, take } from 'rxjs';
 
+import { Store } from '@ngrx/store';
 import { AppComponent } from './app.component';
-import { AppModule, I18N_TRANSLATE_STATE, I18nTranslateState } from './app.module';
+import { AppModule, I18N_TRANSLATE_STATE, I18nTranslateState, STORE_TRANSLATE_STATE } from './app.module';
 import { ComputedStyleLoader } from './core/computed-style-loader';
 import { CustomMissingTranslationHandler } from './core/handler/custom-missing-translation.handler';
 
@@ -72,6 +73,18 @@ const createUniversalStyleLoader = (document: Document, baseHref: string): Compu
       useFactory: createUniversalStyleLoader,
       deps: [DOCUMENT, APP_BASE_HREF],
     },
+    {
+      provide: APP_BOOTSTRAP_LISTENER,
+      useFactory: (store: Store, transferState: TransferState) => {
+        return () => {
+          store.pipe(take(1)).subscribe(state => {
+            transferState.set<string>(STORE_TRANSLATE_STATE, JSON.stringify(state));
+          });
+        };
+      },
+      deps: [Store, TransferState],
+      multi: true,
+    }
   ],
 })
 export class AppServerModule { }

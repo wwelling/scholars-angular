@@ -4,7 +4,6 @@ import { NgModule, makeStateKey } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
-import { TransferHttpCacheModule } from '@nguniversal/common';
 import { TranslateModule } from '@ngx-translate/core';
 
 import { Observable } from 'rxjs';
@@ -24,6 +23,7 @@ export class I18nTranslateState {
 }
 
 export const I18N_TRANSLATE_STATE = makeStateKey<I18nTranslateState>('I18N_TRANSLATE_STATE');
+export const STORE_TRANSLATE_STATE = makeStateKey<string>('STORE_TRANSLATE_STATE');
 
 const getBaseHref = (document: Document, appConfig: AppConfig): string => {
   const baseTag = document.querySelector('head > base');
@@ -47,7 +47,6 @@ const createWithCredentialsInterceptor = (): HttpInterceptor => {
   ],
   imports: [
     BrowserModule,
-    TransferHttpCacheModule,
     BrowserAnimationsModule,
     AppRoutingModule,
     HttpClientModule,

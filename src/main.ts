@@ -18,6 +18,6 @@ document.addEventListener('DOMContentLoaded', () => {
         provide: APP_CONFIG,
         useValue: appConfig
       }]).bootstrapModule(AppBrowserModule)
-        .catch((err) => console.error(err));
+        .catch(console.error);
     });
 });

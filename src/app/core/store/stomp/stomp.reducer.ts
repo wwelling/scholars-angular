@@ -30,7 +30,7 @@ export function reducer(state = initialState, action: StompActions): StompState 
         connected: true,
       };
     case StompActionTypes.CONNECT_FAILURE:
-      console.log(action);
+      console.error(action);
       return {
         ...state,
         connecting: false,
@@ -49,7 +49,7 @@ export function reducer(state = initialState, action: StompActions): StompState 
       state.subscriptions.set(action.payload.channel, action.payload.subscription);
       return state;
     case StompActionTypes.SUBSCRIBE_FAILURE:
-      console.log(action);
+      console.error(action);
       state.handles.delete(action.payload.channel);
       return state;
     case StompActionTypes.UNSUBSCRIBE_SUCCESS:

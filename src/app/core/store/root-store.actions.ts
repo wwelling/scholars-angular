@@ -8,7 +8,7 @@ export const StoreActionTypes = {
 
 export class RehydrateAction implements Action {
   readonly type = StoreActionTypes.REHYDRATE;
-  constructor(public payload: AppState) {}
+  constructor(public payload: { state: AppState }) {}
 }
 
 export type RootStoreActions = RehydrateAction;

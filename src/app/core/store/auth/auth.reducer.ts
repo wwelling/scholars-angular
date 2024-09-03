@@ -130,7 +130,6 @@ export function reducer(state = initialState, action: AuthActions): AuthState {
         user: action.payload.user,
       };
     case AuthActionTypes.GET_USER_FAILURE:
-      console.error(action);
       return {
         ...state,
         gettingUser: false,
