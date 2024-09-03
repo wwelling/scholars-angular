@@ -1,12 +1,12 @@
 import * as fromStore from './root-store.actions';
 
-function merge(over: any, under: any): any {
-  return Object.entries(over).reduce(
+function merge(from: any, into: any): any {
+  return Object.entries(from).reduce(
       (prev, [key, value]) => ({
           ...prev,
           [key]: value,
       }),
-      under
+      into
   );
 }
 
