@@ -60,8 +60,8 @@ export class AuthGuard {
       map((authenticated: boolean) => {
         if (!authenticated) {
           this.store.dispatch(new fromRouter.Link({ url: '/' }));
+          this.store.dispatch(new fromAuth.SetLoginRedirectAction({ url }));
           if (isPlatformBrowser(this.platformId)) {
-            this.store.dispatch(new fromAuth.SetLoginRedirectAction({ url }));
             this.store.dispatch(this.dialog.loginDialog());
             this.store.dispatch(this.alert.forbiddenAlert());
           }
