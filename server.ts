@@ -25,7 +25,6 @@ const BASE_HREF = process.env.BASE_HREF || '/';
 
 const BROKER_URL = process.env.BROKER_URL || 'ws://localhost:9000';
 const SERVICE_URL = process.env.SERVICE_URL || 'http://localhost:9000';
-const SSR_SERVICE_URL = process.env.SSR_SERVICE_URL || 'http://127.0.0.1:9000';
 
 const UI_URL = process.env.UI_URL || 'http://localhost:4200';
 const EMBED_URL = process.env.EMBED_URL || 'http://localhost:4201';
@@ -37,7 +36,6 @@ const COLLECT_SEARCH_STATS = process.env.COLLECT_SEARCH_STATS === 'true';
 const serverAppConfig = (appConfig: AppConfig): AppConfig => {
   return {
     ...appConfig,
-    serviceUrl: SSR_SERVICE_URL
   };
 }
 

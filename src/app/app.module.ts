@@ -4,6 +4,7 @@ import { NgModule, makeStateKey } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
+import { TransferHttpCacheModule } from '@nguniversal/common';
 import { TranslateModule } from '@ngx-translate/core';
 
 import { Observable } from 'rxjs';
@@ -50,6 +51,7 @@ const createWithCredentialsInterceptor = (): HttpInterceptor => {
     BrowserAnimationsModule,
     AppRoutingModule,
     HttpClientModule,
+    TransferHttpCacheModule,
     TranslateModule.forRoot(),
     CoreModule.forRoot(),
     NgbModule,
