@@ -118,7 +118,7 @@ export class DiscoveryComponent implements OnDestroy, OnInit {
   }
 
   public getDiscoveryExportUrl(params: Params, discoveryView: DiscoveryView): string {
-    const queryParams: Params = Object.assign({}, params);
+    const queryParams: Params = { ...params };
     queryParams.facets = null;
     queryParams.collection = null;
     addExportToQueryParams(queryParams, discoveryView);
@@ -128,13 +128,13 @@ export class DiscoveryComponent implements OnDestroy, OnInit {
   }
 
   public getDiscoveryQueryParamsRemovingFilter(params: Params, filterToRemove: Filter): Params {
-    const queryParams: Params = Object.assign({}, params);
+    const queryParams: Params = { ...params };
     removeFilterFromQueryParams(queryParams, filterToRemove);
     return queryParams;
   }
 
   public getDiscoveryQueryParamsClearingFilters(params: Params, discoveryView: DiscoveryView): Params {
-    const queryParams: Params = Object.assign({}, params);
+    const queryParams: Params = { ...params };
     resetFiltersInQueryParams(queryParams, discoveryView);
     return queryParams;
   }

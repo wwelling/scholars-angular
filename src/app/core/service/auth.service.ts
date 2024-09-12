@@ -12,7 +12,10 @@ import { RestService } from './rest.service';
 })
 export class AuthService {
 
-  constructor(@Inject(APP_CONFIG) private appConfig: AppConfig, private restService: RestService) {}
+  constructor(
+    @Inject(APP_CONFIG) private appConfig: AppConfig,
+    private restService: RestService
+  ) { }
 
   public hasSession(): boolean {
     return this.restService.hasSession();

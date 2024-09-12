@@ -24,6 +24,7 @@ export class I18nTranslateState {
 }
 
 export const I18N_TRANSLATE_STATE = makeStateKey<I18nTranslateState>('I18N_TRANSLATE_STATE');
+export const STORE_TRANSLATE_STATE = makeStateKey<string>('STORE_TRANSLATE_STATE');
 
 const getBaseHref = (document: Document, appConfig: AppConfig): string => {
   const baseTag = document.querySelector('head > base');
@@ -47,10 +48,10 @@ const createWithCredentialsInterceptor = (): HttpInterceptor => {
   ],
   imports: [
     BrowserModule,
-    TransferHttpCacheModule,
     BrowserAnimationsModule,
     AppRoutingModule,
     HttpClientModule,
+    TransferHttpCacheModule,
     TranslateModule.forRoot(),
     CoreModule.forRoot(),
     NgbModule,
