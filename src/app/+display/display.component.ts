@@ -133,6 +133,10 @@ export class DisplayComponent implements OnDestroy, OnInit {
             })
           );
 
+          this.discoveryView.subscribe((val) => {console.log('discoveryView:', val)})
+          this.individual.subscribe((val) => {console.log('individual:', val)})
+
+
           // listen to individual changes, updating display view tabs
           this.displayView = this.store.pipe(
             select(selectResourceById('individual', params.id)),
@@ -274,7 +278,14 @@ export class DisplayComponent implements OnDestroy, OnInit {
     return this.showAside(displayView) && displayView.asideLocation === Side.LEFT;
   }
 
-  public showAsideRight(displayView: DisplayView): boolean {
+  public showAsideRight(displayView: DisplayView, individual: Individual): boolean {
+    const excludeTypes: Array<String> = ['Publisher', 'External Organization', 'otherUniversity'];
+
+    const isExcluded: Boolean = individual.type.some(type => excludeTypes.includes(type));
+
+    if (isExcluded)
+      return false;
+
     return this.showAside(displayView) && displayView.asideLocation === Side.RIGHT;
   }
 
