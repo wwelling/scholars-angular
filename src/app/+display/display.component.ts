@@ -127,7 +127,7 @@ export class DisplayComponent implements OnDestroy, OnInit {
             take(1),
             switchMap((individual: Individual) => {
               return this.store.pipe(
-                select(selectDiscoveryViewByClass(individual.class)),
+                select(selectDiscoveryViewByClass(individual.class, individual.type)),
                 filter((view: DiscoveryView) => view !== undefined)
               );
             })
@@ -252,7 +252,7 @@ export class DisplayComponent implements OnDestroy, OnInit {
         }
       })
     );
-  }
+}
 
   public getDisplayViewTabRoute(displayView: DisplayView, tab: DisplayTabView): string[] {
     return [displayView.name, tab.name];

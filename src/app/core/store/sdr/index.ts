@@ -34,24 +34,49 @@ export const selectResourceById = <R extends SdrResource>(name: string, id: stri
 
 export const selectCollectionViewByName = (collectionViewType: string, name: string) => createSelector(selectResourceEntities<CollectionView>(collectionViewType), (collectionViews) => collectionViews[name]);
 
-const findCollectionView = (collectionViews, clazz: string, defaultName: string): CollectionView => {
+const findCollectionView = (collectionViews, clazz: string, type: string[]): CollectionView => {
   let view;
+  let defaultView;
+
+  let maxMatchCount = 0;
   for (const collectionView of collectionViews) {
     const viewByClass = collectionView.filters.find((filter: Filter) => filter.field === 'class');
-    if (!!viewByClass && viewByClass.value.startsWith(clazz)) {
-      view = collectionView;
-      break;
+    if (viewByClass) {
+      const checkType = type.length > 0 && viewByClass.value.indexOf('type:');
+      const hasMatchingType = checkType && viewByClass.value.indexOf(`type:${type[0]}`) >= 0;
+      const hasMatchingStartingClass = viewByClass.value.startsWith(clazz);
+
+      let matchCount = 0;
+
+      if (hasMatchingType) {
+        matchCount++;
+      }
+
+      if (hasMatchingStartingClass) {
+        matchCount++;
+      }
+
+      if (matchCount > maxMatchCount) {
+        view = collectionView;
+        maxMatchCount = matchCount;
+      }
     }
-    if (collectionView.name === defaultName) {
-      view = collectionView;
+
+    if (collectionView.name === 'People') {
+      defaultView = collectionView;
     }
   }
+
+  if (maxMatchCount === 0) {
+    view = defaultView;
+  }
+
   return view;
 };
 
-export const selectDirectoryViewByClass = (clazz: string) => createSelector(selectAllResources<DirectoryView>('directoryViews'), (resources) => findCollectionView(resources, clazz, 'People'));
+export const selectDirectoryViewByClass = (clazz: string, type: string[] = []) => createSelector(selectAllResources<DirectoryView>('directoryViews'), (resources) => findCollectionView(resources, clazz, type));
 
-export const selectDiscoveryViewByClass = (clazz: string) => createSelector(selectAllResources<DiscoveryView>('discoveryViews'), (resources) => findCollectionView(resources, clazz, 'People'));
+export const selectDiscoveryViewByClass = (clazz: string, type: string[] = []) => createSelector(selectAllResources<DiscoveryView>('discoveryViews'), (resources) => findCollectionView(resources, clazz, type));
 
 const findDisplayView = (displayViews, types: string[], defaultName: string): DisplayView => {
   let view;
