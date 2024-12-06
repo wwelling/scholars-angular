@@ -275,11 +275,15 @@ export class DisplayComponent implements OnDestroy, OnInit {
   }
 
   public showAsideRight(displayView: DisplayView, individual: Individual): boolean {
-    const excludeTypes: Array<String> = ['Publisher', 'External Organization', 'otherUniversity'];
-
-    const isExcluded: Boolean = individual.type.some(type => excludeTypes.includes(type));
+    const isExcluded: boolean = this.excludeAsideByIndividualType(individual)
 
     return !isExcluded && this.showAside(displayView) && displayView.asideLocation === Side.RIGHT;
+  }
+
+  private excludeAsideByIndividualType(individual: Individual): boolean {
+    const excludeTypes: Array<String> = ['Publisher', 'External Organization', 'otherUniversity'];
+
+    return individual.type.some(type => excludeTypes.includes(type));
   }
 
   public showAside(displayView: DisplayView): boolean {
