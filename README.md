@@ -1,20 +1,17 @@
-[![Node CI with NPM](https://github.com/TAMULib/scholars-angular/workflows/Node%20CI%20with%20NPM/badge.svg)](https://github.com/TAMULib/scholars-angular/actions?query=workflow%3A%22Node+CI+with+NPM%22)
-[![Coverage Status](https://coveralls.io/repos/github/TAMULib/scholars-angular/badge.svg?branch=tamu-master)](https://coveralls.io/github/TAMULib/scholars-angular?branch=tamu-master)
-
 # scholars-angular
 
-Scholars Angular is a frontend application for exposing VIVO content that is being served via [Scholars Discovery](https://github.com/vivo-community/scholars-discovery).
+Scholars Angular is a frontend application for exposing VIVO content that is being served via [Scholars Discovery](https://github.com/TAMULib/scholars-discovery).
 
 ## Installation
 
 ### Prerequisites
 
-In addition to having [Docker](https://docs.docker.com/) installed, a running [Scholars Discovery](https://github.com/vivo-community/scholars-discovery) is also required.
+In addition to having [Docker](https://docs.docker.com/) installed, a running [Scholars Discovery](https://github.com/TAMULib/scholars-discovery) is also required.
 
 ### Docker Deployment
 
 1. [Install](https://docs.docker.com/install/) Docker
-1. Start [Scholars Discovery](https://github.com/vivo-community/scholars-discovery#installation-instructions)
+1. Start [Scholars Discovery](https://github.com/TAMULib/scholars-discovery)
 1. Build the image
    ```bash
     docker build -t scholars/angular .
