@@ -3,6 +3,7 @@
   "version": "1.5.1",
   "description": "Angular Universal client for Scholars Discovery",
   "keywords": [],
+  "private": false,
   "license": "MIT",
   "contributors": [],
   "packageManager": "yarn@3.6.3",
