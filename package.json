@@ -2,6 +2,7 @@
   "name": "scholars-angular",
   "version": "1.5.1",
   "description": "Angular Universal client for Scholars Discovery",
+  "keywords": [],
   "license": "MIT",
   "contributors": [],
   "packageManager": "yarn@3.6.3",
