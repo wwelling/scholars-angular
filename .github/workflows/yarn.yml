@@ -24,6 +24,5 @@ jobs:
       run: yarn install --network-timeout 3600000
 
     - name: Run Tests
-      uses: GabrielBB/xvfb-action@v1
       with:
         run: yarn test:ci
