@@ -20,17 +20,10 @@ jobs:
         node-version: ${{ matrix.node-version }}
         cache: 'yarn'
 
-    - name: Install dependencies
+    - name: Install Dependencies
       run: yarn install --network-timeout 3600000
 
-    - name: Test CI
+    - name: Run Tests
       uses: GabrielBB/xvfb-action@v1
       with:
         run: yarn test:ci
-
-    - name: Coveralls coverage report
-      if: ${{ matrix.runs-on == 'ubuntu-latest' &&  matrix.node-version == '18' }}
-      uses: coverallsapp/github-action@master
-      with:
-        github-token: ${{ secrets.GITHUB_TOKEN }}
-        path-to-lcov: ./coverage/scholars-angular/lcov.info
