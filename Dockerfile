@@ -1,4 +1,4 @@
-FROM node:18-alpine as node
+FROM node:18-alpine AS node
 
 # copy project to build excluding node_modules and dist via .dockerignore
 COPY . /scholars-angular
@@ -6,11 +6,11 @@ COPY . /scholars-angular
 # set working directory
 WORKDIR /scholars-angular
 
+RUN \
 # install dependencies
-RUN yarn install
-
-# build scholars-angular with server side rendering in production 
-RUN yarn build:ssr
+yarn install \
+# build scholars-angular with server side rendering in production
+yarn build:ssr
 
 # final base image
 FROM keymetrics/pm2:18-alpine
