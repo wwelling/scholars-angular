@@ -30,7 +30,7 @@ export class VisualizationComponent implements OnInit {
     this.route.data.subscribe(data => {
       if (data?.individual?.id) {
         this.discoveryView = this.store.pipe(
-          select(selectResourceById('individual', data.individual.id)),
+          select(selectResourceById('individuals', data.individual.id)),
           filter((individual: Individual) => individual !== undefined),
           take(1),
           switchMap((individual: Individual) => this.store.pipe(

@@ -29,7 +29,7 @@ export interface AppState {
   metadata: fromMetadata.MetadataState;
   sidebar: fromSidebar.SidebarState;
   theme: fromTheme.ThemeState;
-  individual: fromSdr.SdrState<Individual>;
+  individuals: fromSdr.SdrState<Individual>;
   themes: fromSdr.SdrState<Theme>;
   users: fromSdr.SdrState<User>;
   dataAndAnalyticsViews: fromSdr.SdrState<DataAndAnalyticsView>;
@@ -54,7 +54,7 @@ export const reducers = (appConfig: AppConfig): ActionReducerMap<AppState> => {
     metadata: fromMetadata.reducer,
     sidebar: fromSidebar.reducer,
     theme: fromTheme.reducer,
-    individual: fromSdr.getSdrReducer<Individual>('individual', additionalContext),
+    individuals: fromSdr.getSdrReducer<Individual>('individuals', additionalContext),
     themes: fromSdr.getSdrReducer<Theme>('themes', additionalContext),
     users: fromSdr.getSdrReducer<User>('users', additionalContext),
     dataAndAnalyticsViews: fromSdr.getSdrReducer<DataAndAnalyticsView>('dataAndAnalyticsViews', additionalContext),

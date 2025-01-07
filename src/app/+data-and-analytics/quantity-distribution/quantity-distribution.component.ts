@@ -100,7 +100,7 @@ export class QuantityDistributionComponent implements OnChanges, OnDestroy, OnIn
 
     this.subscriptions.push(
       this.store.pipe(
-        select(selectResourcesQuantityDistribution('individual')),
+        select(selectResourcesQuantityDistribution('individuals')),
         filter((qd: QuantityDistribution) => !!qd),
       ).subscribe((qd: QuantityDistribution) => {
 
@@ -247,7 +247,7 @@ export class QuantityDistributionComponent implements OnChanges, OnDestroy, OnIn
   }
 
   private dispatch(additionalFilters: Filter[]): void {
-    this.store.dispatch(new fromSdr.GetQuantityDistributionAction('individual', {
+    this.store.dispatch(new fromSdr.GetQuantityDistributionAction('individuals', {
       label: 'UN SDG',
       query: {
         expression: '*:*'

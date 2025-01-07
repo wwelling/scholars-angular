@@ -20,10 +20,10 @@ export const individualResolver: ResolveFn<Individual> = (
 
   const id = route.params.id;
 
-  store.dispatch(new fromSdr.SelectResourceAction('individual', { id }));
+  store.dispatch(new fromSdr.SelectResourceAction('individuals', { id }));
 
   return store.pipe(
-    select(selectResourceSelected('individual')),
+    select(selectResourceSelected('individuals')),
     filter((individual: Individual) => individual !== undefined),
   );
 };

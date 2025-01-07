@@ -76,7 +76,7 @@ export class DataAndAnalyticsComponent implements OnInit {
     this.store.dispatch(new fromSidebar.UnloadSidebarAction());
     this.store.dispatch(new fromLayout.CloseSidebarAction());
 
-    this.store.dispatch(new fromSdr.ClearResourcesAction('individual'));
+    this.store.dispatch(new fromSdr.ClearResourcesAction('individuals'));
 
     this.queryParams = this.store.pipe(select(selectRouterQueryParams));
     this.filters = this.store.pipe(select(selectRouterQueryParamFilters));
@@ -95,7 +95,7 @@ export class DataAndAnalyticsComponent implements OnInit {
     );
 
     this.selectedOrganization = this.store.pipe(
-      select(selectResourceSelected('individual')),
+      select(selectResourceSelected('individuals')),
       filter((organization: Individual) => !!organization),
     );
 
@@ -156,7 +156,7 @@ export class DataAndAnalyticsComponent implements OnInit {
         const id = querParams.selectedOrganization ? querParams.selectedOrganization : themeOrganizationId;
 
         this.store.pipe(
-          select(selectResourceSelected('individual')),
+          select(selectResourceSelected('individuals')),
           filter((organization: Individual) => !!organization),
           take(1),
         ).subscribe((organization) => {
@@ -171,7 +171,7 @@ export class DataAndAnalyticsComponent implements OnInit {
           );
         });
 
-        this.store.dispatch(new fromSdr.SelectResourceAction('individual', { id }));
+        this.store.dispatch(new fromSdr.SelectResourceAction('individuals', { id }));
       });
   }
 
@@ -231,7 +231,7 @@ export class DataAndAnalyticsComponent implements OnInit {
       this.othersSelect.nativeElement.value = '';
     }
 
-    this.store.dispatch(new fromSdr.SelectResourceAction('individual', { id }));
+    this.store.dispatch(new fromSdr.SelectResourceAction('individuals', { id }));
   }
 
   public getQueryParams(params: Params, view: DataAndAnalyticsView, displayView: DisplayView, orgId?: string | number): Params {

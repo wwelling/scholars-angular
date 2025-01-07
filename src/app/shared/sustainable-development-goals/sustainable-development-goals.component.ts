@@ -48,14 +48,14 @@ export class SustainableDevelopmentGoalsComponent {
     const profileTitle = `Profile ${goal.title}`;
 
     this.store.dispatch(
-      new fromSdr.CountResourcesAction('individual', {
+      new fromSdr.CountResourcesAction('individuals', {
         label: profileTitle,
         request: this.buildRequest('Person', goal, 'selectedPublicationTag')
       })
     );
 
     this.profileCount = this.store.pipe(
-      select(selectResourcesCountByLabel('individual', profileTitle)),
+      select(selectResourcesCountByLabel('individuals', profileTitle)),
       tap(profileCount => goal.profileCount = profileCount)
     );
 
@@ -67,14 +67,14 @@ export class SustainableDevelopmentGoalsComponent {
     const researchTitle = `Research ${goal.title}`;
 
     this.store.dispatch(
-      new fromSdr.CountResourcesAction('individual', {
+      new fromSdr.CountResourcesAction('individuals', {
         label: researchTitle,
         request: this.buildRequest('Document', goal, 'tags')
       })
     );
 
     this.researchCount = this.store.pipe(
-      select(selectResourcesCountByLabel('individual', researchTitle)),
+      select(selectResourcesCountByLabel('individuals', researchTitle)),
       tap(researchCount => goal.researchCount = researchCount)
     );
 

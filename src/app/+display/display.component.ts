@@ -113,17 +113,17 @@ export class DisplayComponent implements OnDestroy, OnInit {
         if (params.id) {
           this.ready.next(false);
 
-          this.store.dispatch(new fromSdr.GetOneResourceAction('individual', { id: params.id }));
+          this.store.dispatch(new fromSdr.GetOneResourceAction('individuals', { id: params.id }));
 
           // listen to individual changes
           this.individual = this.store.pipe(
-            select(selectResourceById('individual', params.id)),
+            select(selectResourceById('individuals', params.id)),
             filter((individual: Individual) => individual !== undefined)
           );
 
           // on first defined individual, get discovery view
           this.discoveryView = this.store.pipe(
-            select(selectResourceById('individual', params.id)),
+            select(selectResourceById('individuals', params.id)),
             filter((individual: Individual) => individual !== undefined),
             take(1),
             switchMap((individual: Individual) => {
@@ -136,7 +136,7 @@ export class DisplayComponent implements OnDestroy, OnInit {
 
           // listen to individual changes, updating display view tabs
           this.displayView = this.store.pipe(
-            select(selectResourceById('individual', params.id)),
+            select(selectResourceById('individuals', params.id)),
             filter((individual: Individual) => individual !== undefined),
             switchMap((individual: Individual) => {
 
@@ -180,7 +180,7 @@ export class DisplayComponent implements OnDestroy, OnInit {
 
           // subscribe to first defined individual to find display view
           firstValueFrom(this.store.pipe(
-            select(selectResourceById('individual', params.id)),
+            select(selectResourceById('individuals', params.id)),
             filter((individual: Individual) => individual !== undefined),
             take(1),
             switchMap((individual: Individual) => {
@@ -201,14 +201,14 @@ export class DisplayComponent implements OnDestroy, OnInit {
                   const dereference = (lazyReference: string): Promise<void> => {
                     return new Promise((resolve, reject) => {
                       this.store.dispatch(
-                        new fromSdr.FetchLazyReferenceAction('individual', {
+                        new fromSdr.FetchLazyReferenceAction('individuals', {
                           individual,
                           field: lazyReference,
                         })
                       );
                       this.subscriptions.push(
                         this.store.pipe(
-                          select(selectResourceIsDereferencing('individual')),
+                          select(selectResourceIsDereferencing('individuals')),
                           filter((dereferencing: boolean) => !dereferencing)
                         ).subscribe(() => resolve())
                       );

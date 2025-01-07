@@ -11,7 +11,7 @@ import { DisplayViewRepo } from './view/repo/display-view.repo';
 // NOTE: the keys must match the property of the Spring Data REST embedded response
 
 export const keys = {
-  individual: 'id',
+  individuals: 'id',
   themes: 'name',
   users: 'email',
   dataAndAnalyticsViews: 'name',
@@ -21,7 +21,7 @@ export const keys = {
 };
 
 export const repos = {
-  individual: new InjectionToken<string>('IndividualRepo'),
+  individuals: new InjectionToken<string>('IndividualRepo'),
   themes: new InjectionToken<string>('ThemeRepo'),
   users: new InjectionToken<string>('UserRepo'),
   dataAndAnalyticsViews: new InjectionToken<string>('DataAndAnalyticsViewRepo'),
@@ -31,7 +31,7 @@ export const repos = {
 };
 
 export const injectable = [
-  { provide: repos.individual, useExisting: IndividualRepo },
+  { provide: repos.individuals, useExisting: IndividualRepo },
   { provide: repos.themes, useExisting: ThemeRepo },
   { provide: repos.users, useExisting: UserRepo },
   { provide: repos.dataAndAnalyticsViews, useExisting: DataAndAnalyticsViewRepo },

@@ -124,9 +124,9 @@ export const getSdrReducer = <R extends SdrResource>(name: string, additionalCon
       case 'displayViews':
         resources.forEach((view: DisplayView) => augmentDisplayViewTemplates(view, additionalContext));
         break;
-      case 'individual':
+      case 'individuals':
         if (!!action.payload.collection._embedded) {
-          sortCollectionTags(action.payload.collection._embedded.individual);
+          sortCollectionTags(action.payload.collection._embedded.individuals);
         }
         if (action.payload.collection.highlights) {
           action.payload.collection.highlights.forEach((highlight: SdrHighlight) => {
@@ -153,7 +153,7 @@ export const getSdrReducer = <R extends SdrResource>(name: string, additionalCon
     return resources;
   };
   const getResource = (action: SdrActions, key: string): R => {
-    const resource = action.payload.individual;
+    const resource = action.payload.individuals;
     switch (key) {
       case 'dataAndAnalyticsViews':
       case 'directoryViews':
@@ -163,7 +163,7 @@ export const getSdrReducer = <R extends SdrResource>(name: string, additionalCon
       case 'displayViews':
         augmentDisplayViewTemplates(resource, additionalContext);
         break;
-      case 'individual':
+      case 'individuals':
         if (resource.tags) {
           sortTags(resource.tags);
         }
@@ -262,7 +262,7 @@ export const getSdrReducer = <R extends SdrResource>(name: string, additionalCon
         const id = action.payload.individual.id;
         const isArray = Array.isArray(state.entities[id][action.payload.field]);
         // tslint:disable-next-line: no-string-literal
-        const embedded = action.payload.resources._embedded.individual;
+        const embedded = action.payload.resources._embedded.individuals;
         sortCollectionTags(embedded);
         changes[action.payload.field] = isArray ? embedded : embedded[0];
         return getSdrAdapter<R>(keys[name]).updateOne(

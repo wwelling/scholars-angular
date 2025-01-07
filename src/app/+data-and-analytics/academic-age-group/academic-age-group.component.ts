@@ -117,7 +117,7 @@ export class AcademicAgeGroupComponent implements OnInit, OnChanges {
     this.store.dispatch(new fromSidebar.LoadSidebarAction({ menu }));
 
     this.academicAge = this.store.pipe(
-      select(selectResourcesAcademicAge('individual')),
+      select(selectResourcesAcademicAge('individuals')),
       filter((ra: AcademicAge) => !!ra && (ra.label === rk || ra.label === pk)),
       tap((ra: AcademicAge) => {
         if (ra.label === rk) {
@@ -129,7 +129,7 @@ export class AcademicAgeGroupComponent implements OnInit, OnChanges {
     );
 
     this.averagePubRateAcademicAge = this.store.pipe(
-      select(selectResourcesAcademicAge('individual')),
+      select(selectResourcesAcademicAge('individuals')),
       filter((ra: AcademicAge) => !!ra && (ra.label === rk || ra.label === apk)),
       map(academicAgeGroupToBarplotInput)
     );
@@ -142,7 +142,7 @@ export class AcademicAgeGroupComponent implements OnInit, OnChanges {
   ngOnChanges(changes: SimpleChanges): void {
     const { filters } = changes;
 
-    this.store.dispatch(new fromSdr.ClearAcademicAgeAction('individual'));
+    this.store.dispatch(new fromSdr.ClearAcademicAgeAction('individuals'));
 
     setTimeout(() => {
       const additionalFilters = [];
@@ -220,7 +220,7 @@ export class AcademicAgeGroupComponent implements OnInit, OnChanges {
     averageOverInterval: boolean = false,
     additionalFilters: Filterable[] = [],
     queue: fromSdr.GetAcademicAgeAction[] = []
-  ): fromSdr.GetAcademicAgeAction => new fromSdr.GetAcademicAgeAction('individual', {
+  ): fromSdr.GetAcademicAgeAction => new fromSdr.GetAcademicAgeAction('individuals', {
     label,
     query: {
       expression: 'publicationDates:*'

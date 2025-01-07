@@ -28,16 +28,16 @@ export class CoInvestigatorNetworkComponent implements OnInit {
 
   ngOnInit() {
     this.individual = this.store.pipe(
-      select(selectResourceSelected('individual')),
+      select(selectResourceSelected('individuals')),
       filter((individual: Individual) => individual !== undefined)
     );
     this.dataNetwork = this.store.pipe(
-      select(selectResourcesDataNetwork('individual')),
+      select(selectResourcesDataNetwork('individuals')),
       filter((individual: DataNetwork) => individual !== undefined),
     );
 
     this.route.parent.data.subscribe(data => {
-      this.store.dispatch(new fromSdr.GetNetworkAction('individual', {
+      this.store.dispatch(new fromSdr.GetNetworkAction('individuals', {
         id: data.individual.id,
         dateField: 'dateTimeIntervalStart',
         dataFields: ['contributors'],

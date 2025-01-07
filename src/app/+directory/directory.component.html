@@ -34,12 +34,12 @@
         <a [routerLink]="getDirectoryRouterLink(directoryView)" [queryParams]="getDirectoryQueryParamsClearingFilters(queryParams, directoryView)">Clear</a>
       </span>
     </div>
-    <div class="index">
+    <div class="grouping">
       <a class="option" [routerLink]="getDirectoryRouterLink(directoryView)" [queryParams]="getDirectoryQueryParamsResetting(queryParams, directoryView)">
         <span *ngIf="isActive(directoryView, queryParams, 'All')" class="fa fa-caret-right mr-1"></span>
         <span>{{ 'DIRECTORY.ALL' | translate }}</span>
       </a>
-      <ng-template ngFor let-option [ngForOf]="directoryView.index.options" [ngForTrackBy]="trackByOption">
+      <ng-template ngFor let-option [ngForOf]="directoryView.grouping.options" [ngForTrackBy]="trackByOption">
         <a class="option" [routerLink]="getDirectoryRouterLink(directoryView)" [queryParams]="getDirectoryQueryParamsWithOption(queryParams, directoryView, option)">
           <span *ngIf="isActive(directoryView, queryParams, option)" class="fa fa-caret-right mr-1"></span>
           <span>{{option}}</span>

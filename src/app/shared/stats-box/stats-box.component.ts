@@ -33,7 +33,7 @@ export class StatsBoxComponent implements OnInit {
       filter((view: DirectoryView) => view !== undefined)
     );
     this.store.dispatch(
-      new fromSdr.CountResourcesAction('individual', {
+      new fromSdr.CountResourcesAction('individuals', {
         label: this.label,
         request: {
           filters: [
@@ -46,7 +46,7 @@ export class StatsBoxComponent implements OnInit {
         },
       })
     );
-    this.counts = this.store.pipe(select(selectResourcesCounts('individual')));
+    this.counts = this.store.pipe(select(selectResourcesCounts('individuals')));
   }
 
   public format(count: number): string | number {

@@ -68,10 +68,10 @@ export class DiscoveryComponent implements OnDestroy, OnInit {
     this.query = this.store.pipe(select(selectRouterSearchQuery));
     this.queryParams = this.store.pipe(select(selectRouterQueryParams));
     this.filters = this.store.pipe(select(selectRouterQueryParamFilters));
-    this.loading = this.store.pipe(select(selectResourceIsLoading('individual')));
-    this.documents = this.store.pipe(select(selectAllResources<Individual>('individual')));
-    this.page = this.store.pipe(select(selectResourcesPage<Individual>('individual')));
-    this.facets = this.store.pipe(select(selectResourcesFacets<Individual>('individual')));
+    this.loading = this.store.pipe(select(selectResourceIsLoading('individuals')));
+    this.documents = this.store.pipe(select(selectAllResources<Individual>('individuals')));
+    this.page = this.store.pipe(select(selectResourcesPage<Individual>('individuals')));
+    this.facets = this.store.pipe(select(selectResourcesFacets<Individual>('individuals')));
     this.discoveryViews = this.store.pipe(select(selectAllResources<DiscoveryView>('discoveryViews')));
     this.subscriptions.push(
       this.route.params.subscribe((params) => {

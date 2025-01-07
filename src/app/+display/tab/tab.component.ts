@@ -33,11 +33,11 @@ export class TabComponent implements OnDestroy, OnInit {
     this.subscriptions.push(
       combineLatest([this.route.parent.params, this.route.params]).subscribe((params: Params[]) => {
         if (params[0].id && params[1].view && params[1].tab) {
-          this.individual = this.store.pipe(select(selectResourceById('individual', params[0].id)));
+          this.individual = this.store.pipe(select(selectResourceById('individuals', params[0].id)));
 
           // listen to individual changes to get updated display view
           this.tab = this.store.pipe(
-            select(selectResourceById('individual', params[0].id)),
+            select(selectResourceById('individuals', params[0].id)),
             filter((individual: Individual) => individual !== undefined),
             switchMap((individual: Individual) => {
 

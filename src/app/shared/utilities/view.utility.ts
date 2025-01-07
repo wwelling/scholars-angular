@@ -134,7 +134,7 @@ const resetFiltersInQueryParams = (queryParams: Params, collectionView: Collecti
 
 const getQueryParams = (collectionView: CollectionView): Params => {
   const queryParams: Params = {};
-  queryParams.collection = 'individual';
+  queryParams.collection = 'individuals';
   addFieldsToQueryParams(queryParams, collectionView);
   addFacetsToQueryParams(queryParams, collectionView);
   addFiltersToQueryParams(queryParams, collectionView);

@@ -1,6 +1,6 @@
 :host {
   width: 100%;
-  .index {
+  .grouping {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(20px, 1fr));
     grid-gap: 8px;

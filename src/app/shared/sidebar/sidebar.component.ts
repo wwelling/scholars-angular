@@ -40,7 +40,7 @@ export class SidebarComponent implements OnInit {
     this.isSidebarCollapsed = this.store.pipe(select(selectIsSidebarCollapsed));
     this.menu = this.store.pipe(select(selectMenu));
     this.url = this.store.pipe(select(selectRouterUrl));
-    this.loading = this.store.pipe(select(selectResourceIsLoading('individual')));
+    this.loading = this.store.pipe(select(selectResourceIsLoading('individuals')));
   }
 
   public onSelectSection(section: SidebarSection, sectionIndex: number): void {

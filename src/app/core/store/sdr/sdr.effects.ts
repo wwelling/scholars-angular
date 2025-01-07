@@ -89,7 +89,7 @@ export class SdrEffects {
           if (individual) {
             return of(new fromSdr.SelectResourceSuccessAction(action.name, { individual, select: true, queue: action.payload.queue }));
           } else {
-            return of(new fromSdr.GetOneResourceAction('individual', { id: action.payload.id, select: true, queue: action.payload.queue }));
+            return of(new fromSdr.GetOneResourceAction('individuals', { id: action.payload.id, select: true, queue: action.payload.queue }));
           }
         })
       );
@@ -305,7 +305,7 @@ export class SdrEffects {
       const individual = action.payload.individual;
       const ids = Array.isArray(individual[field]) ? individual[field].map((property) => property.id) : [individual[field].id];
       return this.repos
-        .get('individual')
+        .get('individuals')
         .findByIdIn(ids)
         .pipe(
           map(

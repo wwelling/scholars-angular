@@ -58,10 +58,10 @@ export class DirectoryComponent implements OnDestroy, OnInit {
   ngOnInit() {
     this.queryParams = this.store.pipe(select(selectRouterQueryParams));
     this.filters = this.store.pipe(select(selectRouterQueryParamFilters));
-    this.loading = this.store.pipe(select(selectResourceIsLoading('individual')));
-    this.documents = this.store.pipe(select(selectAllResources<Individual>('individual')));
-    this.page = this.store.pipe(select(selectResourcesPage<Individual>('individual')));
-    this.facets = this.store.pipe(select(selectResourcesFacets<Individual>('individual')));
+    this.loading = this.store.pipe(select(selectResourceIsLoading('individuals')));
+    this.documents = this.store.pipe(select(selectAllResources<Individual>('individuals')));
+    this.page = this.store.pipe(select(selectResourcesPage<Individual>('individuals')));
+    this.facets = this.store.pipe(select(selectResourcesFacets<Individual>('individuals')));
     this.subscriptions.push(
       this.route.params.subscribe((params) => {
         if (params.view) {
@@ -83,8 +83,8 @@ export class DirectoryComponent implements OnDestroy, OnInit {
 
   public isActive(directoryView: DirectoryView, params: Params, option: string): boolean {
     const queryParams: Params = { ...params };
-    if (hasFilter(queryParams.filters, directoryView.index.field)) {
-      return queryParams[`${directoryView.index.field}.filter`] === option;
+    if (hasFilter(queryParams.filters, directoryView.grouping.field)) {
+      return queryParams[`${directoryView.grouping.field}.filter`] === option;
     }
     return option === 'All';
   }
@@ -131,17 +131,17 @@ export class DirectoryComponent implements OnDestroy, OnInit {
 
   public getDirectoryQueryParamsResetting(params: Params, directoryView: DirectoryView): Params {
     const queryParams: Params = { ...params };
-    if (hasFilter(queryParams.filters, directoryView.index.field)) {
+    if (hasFilter(queryParams.filters, directoryView.grouping.field)) {
       const filters = queryParams.filters.split(',')
         .map((field) => field.trim())
-        .filter((field) => field !== directoryView.index.field);
+        .filter((field) => field !== directoryView.grouping.field);
       if (filters.length > 0) {
         queryParams.filters = filters.join(',');
       } else {
         delete queryParams.filters;
       }
-      delete queryParams[`${directoryView.index.field}.filter`];
-      delete queryParams[`${directoryView.index.field}.opKey`];
+      delete queryParams[`${directoryView.grouping.field}.filter`];
+      delete queryParams[`${directoryView.grouping.field}.opKey`];
     }
     return queryParams;
   }
@@ -156,13 +156,13 @@ export class DirectoryComponent implements OnDestroy, OnInit {
     const queryParams: Params = { ...params };
     queryParams.page = 1;
     if (option) {
-      queryParams[`${directoryView.index.field}.filter`] = option;
-      queryParams[`${directoryView.index.field}.opKey`] = directoryView.index.opKey;
+      queryParams[`${directoryView.grouping.field}.filter`] = option;
+      queryParams[`${directoryView.grouping.field}.opKey`] = directoryView.grouping.opKey;
       if (!queryParams.filters) {
-        queryParams.filters = directoryView.index.field;
+        queryParams.filters = directoryView.grouping.field;
       } else {
-        if (queryParams.filters.split(',').indexOf(directoryView.index.field) < 0) {
-          queryParams.filters += `,${directoryView.index.field}`;
+        if (queryParams.filters.split(',').indexOf(directoryView.grouping.field) < 0) {
+          queryParams.filters += `,${directoryView.grouping.field}`;
         }
       }
     }
