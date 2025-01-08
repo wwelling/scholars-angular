@@ -18,6 +18,10 @@ const addFacetsToQueryParams = (queryParams: Params, collectionView: CollectionV
       });
       queryParams[`${facet.field}.sort`] = `${facet.sort},${facet.direction}`;
 
+      if (facet.domain) {
+        queryParams[`${facet.field}.domain`] = encodeURIComponent(JSON.stringify(facet.domain));
+      }
+
       if (!facet.collapsed) {
         expanded.push(encodeURIComponent(facet.name));
       }
